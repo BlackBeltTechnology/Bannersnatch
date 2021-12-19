@@ -26,22 +26,6 @@ public class GenerateResourcesFileProcessor {
             this.figFont = figFont;
 
         }
-
-        public File getFile() {
-            return file;
-        }
-
-        public String getConstName() {
-            return constName;
-        }
-
-        public String getFontName() {
-            return fontName;
-        }
-
-        public FigFont getFigFont() {
-            return figFont;
-        }
     }
 
     public static void iteraterFonts(Consumer<Font> transformFile) throws IOException {

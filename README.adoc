@@ -1,3 +1,5 @@
+:imagesdir: images
+
 # Bannersnatch
 
 ## What is Bannersnatch?
@@ -36,28 +38,49 @@ So very big respect for the original contributors:
  * Implementation based on FIGlet 2.2.5 C code: http://www.figlet.org
  * Includes font smushing
  * Includes left-to-right and right-to-left text rendering
- 
+ * Can render color gradient banner text
+
 ### Example usage
 
 Rendering FIGlet text with a build-in FIGfont resource
 
 ```
-    final FigletRenderer figletRenderer = new FigletRenderer(FigFontResources.loadFontResource(FigFontResources.STANDARD));
-    System.out.println(figletRenderer.renderText("Hello world"));
+final FigletRenderer figletRenderer = new FigletRenderer(FigFontResources.loadFontResource(FigFontResources.STANDARD));
+System.out.println(figletRenderer.renderText("Hello world"));
 ```
 
-Rendering FIGlet text with an external FIGfont file
+#### Rendering FIGlet text with an external FIGfont file
 
 ```
-    final FigFont figFont;
-    try(final InputStream inputStream = Files.newInputStream(Paths.get("/usr/local/share/figlet/standard.flf")))
-    {
-		figFont = FigFont.loadFont(inputStream);
-	}
-	final FigletRenderer figletRenderer = new FigletRenderer(figFont);
-	
-	System.out.println(figletRenderer.renderText("Hello world!"));
+final FigFont figFont;
+try(final InputStream inputStream = Files.newInputStream(Paths.get("/usr/local/share/figlet/standard.flf"))) {
+   figFont = FigFont.loadFont(inputStream);
+}
+final FigletRenderer figletRenderer = new FigletRenderer(figFont);
+System.out.println(figletRenderer.renderText("Hello world!"));
 ```
+
+#### Rendering rainbow color figlet
+
+There is a 36 color palette
+
+image::palette.png[]
+
+The `drawGradient` using given font, text, start color and end color.
+```
+System.out.println(RainbowColors.drawGradient(FigFontResources.STANDARD, "Test", 20, 30));
+```
+
+image::gradient.png[]
+
+The font and color can be randomized with `randomDraw`
+
+```
+System.out.println(RainbowColors.randomDraw("Test"));
+```
+
+image::random.png[]
+
 
 ### Built-in FIGfonts
 

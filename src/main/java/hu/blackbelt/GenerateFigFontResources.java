@@ -14,12 +14,18 @@ public class GenerateFigFontResources {
                 "\n" +
                 "import java.io.IOException;\n" +
                 "import java.io.InputStream;\n" +
+                "import java.util.HashSet;\n" +
+                "import java.util.Set;\n" +
                 "\n" +
                 "/**\n" +
                 " * FigFontResources contains constants used to identify bundles FIGfont\n" +
                 " * resources.\n" +
                 " */\n");
-        sb.append("public class FigFontResources {\n");
+        sb.append("public class FigFontResources {\n" +
+                "\tpublic static final Set<String> FONTS = new HashSet();\n"
+                );
+
+        StringBuilder fontCatalog = new StringBuilder();
 
         GenerateResourcesFileProcessor.iteraterFonts((f) -> {
             final FigletRenderer figletRenderer = new FigletRenderer(f.figFont);
@@ -55,6 +61,8 @@ public class GenerateFigFontResources {
                     "\t * </pre>\n" +
                     "\t */\n" +
                     "\tpublic static final String " + constName + " = \"" + f.file.getName() + "\";\n\n");
+            fontCatalog.append("\t\tFONTS.add(" + f.constName + ");\n");
+
         });
 
         sb.append("\tprivate FigFontResources() {\n" +
@@ -76,6 +84,9 @@ public class GenerateFigFontResources {
                 "\t\t\t\t.getResourceAsStream(resourceName)) {\n" +
                 "\t\t\treturn FigFont.loadFigFont(inputStream);\n" +
                 "\t\t}\n" +
+                "\t}\n\n" +
+                "\tstatic {\n" +
+                fontCatalog.toString() +
                 "\t}\n" +
                 "}\n");
 

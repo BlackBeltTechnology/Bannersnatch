@@ -1,12 +1,8 @@
-package hu.blackbelt.bannersnatch.jfiglet;
+package hu.blackbelt.bannersnatch.figlet;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
-
-import hu.blackbelt.bannersnatch.jfiglet.FigFont.FigCharacter;
-import hu.blackbelt.bannersnatch.jfiglet.FigFont.PrintDirection;
 
 /**
  * FigletRenderer renders text as FIGlet text.
@@ -97,13 +93,13 @@ public class FigletRenderer {
 
 			if (character != '\n') {
 				final int smushAmount = figFont.calculateOverlapAmount(prevChar, character, smushMode, printDirection);
-				final FigCharacter figChar = figFont.getFigCharacter(character);
+				final FigFont.FigCharacter figChar = figFont.getFigCharacter(character);
 
 				for (int row = 0; row < figFont.getHeight(); row++) {
 					final StringBuilder rowBuilder = rowBuilders.get(row);
 
 					if (rowBuilder.length() > 0) {
-						if (printDirection == PrintDirection.LEFT_TO_RIGHT) {
+						if (printDirection == FigFont.PrintDirection.LEFT_TO_RIGHT) {
 							// Smush the new FIGcharacter onto the right of the previous FIGcharacter.
 							for (int smushColumn = 0; smushColumn < smushAmount; smushColumn++) {
 								int smushIndex = rowBuilder.length() - (smushColumn + 1);

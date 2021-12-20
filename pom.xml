@@ -52,6 +52,7 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.language>java</sonar.language>
         <sonar.java.source>${maven.compiler.source}</sonar.java.source>
+
     </properties>
 
     <url>http://github.com/${project-repositoryId}</url>

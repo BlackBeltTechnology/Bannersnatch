@@ -1,6 +1,6 @@
-package hu.blackbelt.bannersnatch.jfiglet;
+package hu.blackbelt.bannersnatch.figlet;
 
-import static hu.blackbelt.bannersnatch.jfiglet.FigFont.*;
+import static hu.blackbelt.bannersnatch.figlet.FigFont.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;

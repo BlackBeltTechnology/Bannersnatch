@@ -1,6 +1,6 @@
-package hu.blackbelt;
+package hu.blackbelt.bannersnatch.generator;
 
-import hu.blackbelt.bannersnatch.jfiglet.FigletRenderer;
+import hu.blackbelt.bannersnatch.figlet.FigletRenderer;
 
 import java.io.IOException;
 import java.util.Locale;

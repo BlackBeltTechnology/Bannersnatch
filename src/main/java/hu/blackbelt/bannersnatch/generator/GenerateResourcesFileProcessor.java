@@ -1,8 +1,8 @@
-package hu.blackbelt;
+package hu.blackbelt.bannersnatch.generator;
 
-import hu.blackbelt.bannersnatch.jfiglet.FigFont;
-import hu.blackbelt.bannersnatch.jfiglet.FigFontResources;
-import hu.blackbelt.bannersnatch.jfiglet.FigletRenderer;
+import hu.blackbelt.bannersnatch.figlet.FigFont;
+import hu.blackbelt.bannersnatch.figlet.FigFontResources;
+import hu.blackbelt.bannersnatch.figlet.FigletRenderer;
 
 import java.io.File;
 import java.io.IOException;

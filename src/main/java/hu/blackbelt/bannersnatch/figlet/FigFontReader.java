@@ -1,4 +1,4 @@
-package hu.blackbelt.bannersnatch.jfiglet;
+package hu.blackbelt.bannersnatch.figlet;
 
 import java.io.BufferedReader;
 import java.io.IOException;

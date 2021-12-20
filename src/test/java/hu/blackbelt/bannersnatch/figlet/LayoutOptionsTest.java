@@ -1,9 +1,7 @@
-package hu.blackbelt.bannersnatch.jfiglet;
+package hu.blackbelt.bannersnatch.figlet;
 
-import static hu.blackbelt.bennersnatch.gradient.RainbowColors.GRADIENT_COLORS;
 import static org.junit.jupiter.api.Assertions.*;
 
-import hu.blackbelt.bennersnatch.gradient.RainbowColors;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -13,7 +11,6 @@ public class LayoutOptionsTest {
 	@Test
 	public void testIsIncludedIn() throws IOException {
 		// 24463 = binary (msb) 101111110001111 (lsb)
-
 		assertTrue(LayoutOptions.islayoutOptionSelected(LayoutOptions.HORIZONTAL_EQUAL_CHARACTER_SMUSHING, 24463)); // (1),
 		assertTrue(LayoutOptions.islayoutOptionSelected(LayoutOptions.HORIZONTAL_UNDERSCORE_SMUSHING, 24463)); // (2),
 		assertTrue(LayoutOptions.islayoutOptionSelected(LayoutOptions.HORIZONTAL_HIERARCHY_SMUSHING, 24463)); // (4),

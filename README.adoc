@@ -1,117 +1,249 @@
 :imagesdir: images
 
-# Bannersnatch
+= Bannersnatch
 
-## What is Bannersnatch?
+:toc:
 
-Bannersnatch a little, standalone library which can be used to print colorful banners to text consoles in Java. It is OSGi bundle,
+== What is Bannersnatch?
+
+`Bannersnatch` a little, standalone library which can be used to print
+colorful banners to text consoles in Java. It is an OSGi bundle,
 so it can be used Eclipse / Karaf or any other OSGi framework.
 
-It's able to detect console width,  so it can automatically can
-select the best suited font with the given text.
-
 I was a little bored with my professional development, and
-there was needed some feedback in log aboit application started. 
-In the first version I stored Figlet text prerendered, but after 
-I decided to to replace. So when I wrote this line the concept
-is born.
+there was needed some feedback in log about application start state.
+In the first version I stored Figlet text prerendered, but later
+I decided to replace it. So when I wrote this line the concept
+has born.
 
-## What name is Bannersnatch?
+== What name is Bannersnatch?
 
-The origin of name is came from `Bandersnatch`, which is a 
-fictional creature, the name is reused in a `Black Mirror``
+The origin of name is `Bandersnatch`, which is a
+A bandersnatch is a fictional creature in Lewis Carroll's
+1871 novel Through the Looking-Glass and his 1874 poem The Hunting of
+the Snark. The name is reused in `Black Mirror's`
 interactive episode. This banner library is interactive, because
 using Figlet fonts to render the text dynamically, and
-extraordinally fast - tere is no horsepower needed to print some asciiart :)
+fast (as Bandersnatch) - there is no horsepower needed to print some asciiart :)
 
-## Java implementation of FIGlet with ansii color
+== Java implementation of FIGlet with ansii color
 
 There is several little library included here. 
 So the inspired by means inluded and some modification made.
 So very big respect for the original contributors:
 
-- https://github.com/lalyos/jfiglet
-- https://github.com/dtmo/jfiglet
+ - https://github.com/lalyos/jfiglet
+ - https://github.com/dtmo/jfiglet
 
-### Features
+=== Features
 
  * Implementation based on FIGlet 2.2.5 C code: http://www.figlet.org
  * Includes font smushing
  * Includes left-to-right and right-to-left text rendering
  * Can render color gradient banner text
 
-### Example usage
+=== Example usage
 
 Rendering FIGlet text with a build-in FIGfont resource
 
-```
+[source, java]
+----
 final FigletRenderer figletRenderer = new FigletRenderer(FigFontResources.loadFontResource(FigFontResources.STANDARD));
 System.out.println(figletRenderer.renderText("Hello world"));
-```
+----
 
-#### Rendering FIGlet text with an external FIGfont file
+==== Rendering FIGlet text with an external FIGfont file
 
-```
+[source, java]
+----
 final FigFont figFont;
 try(final InputStream inputStream = Files.newInputStream(Paths.get("/usr/local/share/figlet/standard.flf"))) {
    figFont = FigFont.loadFont(inputStream);
 }
 final FigletRenderer figletRenderer = new FigletRenderer(figFont);
 System.out.println(figletRenderer.renderText("Hello world!"));
-```
+----
 
-#### Rendering rainbow color figlet
+==== Rendering banner with Banner
 
-There is a 36 color palette
+The banner supports the following terminal styles:
 
-image::palette.png[]
+- COLOR_16
++
+image::palette_16.png[]
 
-The `drawGradient` using given font, text, start color and end color.
-```
-System.out.println(RainbowColors.drawGradient(FigFontResources.STANDARD, "Test", 20, 30));
-```
+- COLOR_256
++
+image::palette_256.png[]
+
+- COLOR_RGB
++
+image::palette_rgb.png[]
+
+- COLOR_16_LEGACY
++
+image::palette_16_legacy.png[]
+
+
+==== Draw palette
+
+[source, java]
+----
+System.out.println(Banner.buildBanner()
+    .termColorModel(TermColor.TermColorModel.COLOR_RGB)
+    .build()
+    .drawPalette(80));
+----
+
+==== Draw ascii without any ansi sequence
+
+[source, java]
+----
+System.out.println(Banner.buildBanner().build().drawAscii("Colorless ASCII"));
+----
+
+==== Draw text with color
+
+[source, java]
+----
+System.out.println(Banner.buildBanner().build().drawColor("Red Text", new Hsl(0, 1.0, 0.5)));
+System.out.println(Banner.buildBanner().build().drawColor("Red Text", new Rgb(255, 0, 0)));
+
+----
+
+image::colortext.png[]
+
+==== Draw text within color range
+
+[source, java]
+----
+System.out.println(Banner.buildBanner().build().drawColorRange("Rainbow Color",
+        new Hsl(0, 1.0, 0.5), new Hsl(0.5, 1.0, 0.5)));
+----
 
 image::gradient.png[]
 
-The font and color can be randomized with `randomDraw`
+==== Draw text with random font and random range of colors
 
-```
-System.out.println(RainbowColors.randomDraw("Test"));
-```
+[source, java]
+----
+System.out.println(Banner.buildBanner().build().drawCrazy("Crazy heh?"));
+----
 
 image::random.png[]
 
+==== Colorize given multiline text
 
-### Built-in FIGfonts
+[source, java]
+----
+StringBuilder sb = new StringBuilder();
+sb.append("Line 1\n");
+sb.append("Line 2\n");
+sb.append("Line 3\n");
+sb.append("Line 4\n");
+sb.append("Line 5\n");
+sb.append("Line 6\n");
+sb.append("Line 7\n");
+sb.append("Line 8\n");
+sb.append("Line 9\n");
+sb.append("Line 10\n");
+sb.append("Line 11\n");
+sb.append("Line 12\n");
+sb.append("Line 13\n");
+sb.append("Line 14\n");
+sb.append("Line 15\n");
+sb.append("Line 16\n");
 
-#### Chunky (CHUNKY)
-```
+System.out.println(Banner.buildBanner().build().colorize(sb.toString(),
+        new Hsl(0, 1.0, 0.5), new Hsl(1.0, 1.0, 0.5)));
+----
+
+image::colorize.png[]
+
+=== Image conversion to terminal
+
+==== Render graymap ascii text without color
+
+[source, java]
+----
+System.out.println(ImageToText.builder()
+    .isColorConverted(false).build()
+    .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+----
+
+image::image_ascii.png[]
+
+==== Render graymap ascii text with color
+
+[source, java]
+----
+System.out.println(ImageToText.builder().build()
+    .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+----
+
+image::image_ascii_color.png[]
+
+==== Render graymap ascii text with gray color
+
+[source, java]
+----
+System.out.println(ImageToText.builder()
+    .isGraycale(true).build()
+    .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+----
+
+image::image_ascii_gray.png[]
+
+==== Render text with color without graymap
+
+[source, java]
+----
+System.out.println(ImageToText.builder()
+    .useGrayMap(false).build()
+    .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+----
+
+image::image_ascii_color_without_graymap.png[]
+
+
+=== Built-in FIGfonts
+
+==== Chunky (CHUNKY)
+[source]
+----
+
  ______  __                   __
 |      ||  |--..--.--..-----.|  |--..--.--.
 |   ---||     ||  |  ||     ||    < |  |  |
 |______||__|__||_____||__|__||__|__||___  |
                                     |_____|
-```
-#### Mirror (MIRROR)
-```
+----
+==== Mirror (MIRROR)
+[source]
+----
+
                           _  __  __
  __ _   ___   __ _  __ _ (_)|  \/  |
 |__` | / _ \ |__` ||__` || || |\/| |
    | || (_) |   | |   | || || |  | |
    |_| \___/    |_|   |_||_||_|  |_|
 
-```
-#### Avatar (AVATAR)
-```
+----
+==== Avatar (AVATAR)
+[source]
+----
+
  ____  _     ____  _____  ____  ____
 /  _ \/ \ |\/  _ \/__ __\/  _ \/  __\
 | / \|| | //| / \|  / \  | / \||  \/|
 | |-||| \// | |-||  | |  | |-|||    /
 \_/ \|\__/  \_/ \|  \_/  \_/ \|\_/\_\
 
-```
-#### Dancing Font (DANCING_FONT)
-```
+----
+==== Dancing Font (DANCING_FONT)
+[source]
+----
+
   ____       _      _   _      ____              _   _     ____        _____   U  ___ u  _   _     _____
  |  _"\  U  /"\  u | \ |"|  U /"___|    ___     | \ |"| U /"___|u     |" ___|   \/"_ \/ | \ |"|   |_ " _|
 /| | | |  \/ _ \/ <|  \| |> \| | u     |_"_|   <|  \| |>\| |  _ /    U| |_  u   | | | |<|  \| |>    | |
@@ -119,18 +251,22 @@ U| |_| |\ / ___ \ U| |\  |u  | |/__     | |    U| |\  |u | |_| |     \|  _|/.-,_
  |____/ u/_/   \_\ |_| \_|    \____|  U/| |\u   |_| \_|   \____|      |_|    \_)-\___/  |_| \_|   u |_|U
   |||_    \\    >> ||   \\,-._// \\.-,_|___|_,-.||   \\,-._)(|_       )(\\,-      \\    ||   \\,-._// \\_
  (__)_)  (__)  (__)(_")  (_/(__)(__)\_)-' '-(_/ (_")  (_/(__)__)     (__)(_/     (__)   (_")  (_/(__) (__)
-```
-#### Runic (RUNIC)
-```
+----
+==== Runic (RUNIC)
+[source]
+----
+
 |~\
 |  \
 |  /
 |_/
 | \
 |  \
-```
-#### Roman (ROMAN)
-```
+----
+==== Roman (ROMAN)
+[source]
+----
+
 ooooooooo.
 `888   `Y88.
  888   .d88'  .ooooo.  ooo. .oo.  .oo.    .oooo.   ooo. .oo.
@@ -141,9 +277,11 @@ o888o  o888o `Y8bod8P' o888o o888o o888o `Y888""8o o888o o888o
 
 
 
-```
-#### rev (REV)
-```
+----
+==== rev (REV)
+[source]
+----
+
 =======================
 =======================
 =======================
@@ -155,14 +293,18 @@ o888o  o888o `Y8bod8P' o888o o888o o888o `Y888""8o o888o o888o
 =  =======  =  ==== ===
 =  ========   ===== ===
 =======================
-```
-#### Two Point (TWO_POINT)
-```
+----
+==== Two Point (TWO_POINT)
+[source]
+----
+
 ~|~     _   |~) _ o._ _|_
  | \/\/(_)  |~ (_)|| | |
-```
-#### dancingfont (DANCINGFONT)
-```
+----
+==== dancingfont (DANCINGFONT)
+[source]
+----
+
   ____       _      _   _      ____              _   _     ____    _____   U  ___ u  _   _     _____
  |  _"\  U  /"\  u | \ |"|  U /"___|    ___     | \ |"| U /"___|u |" ___|   \/"_ \/ | \ |"|   |_ " _|
 /| | | |  \/ _ \/ <|  \| |> \| | u     |_"_|   <|  \| |>\| |  _ /U| |_  u   | | | |<|  \| |>    | |
@@ -170,29 +312,37 @@ U| |_| |\ / ___ \ U| |\  |u  | |/__     | |    U| |\  |u | |_| | \|  _|/.-,_| |_
  |____/ u/_/   \_\ |_| \_|    \____|  U/| |\u   |_| \_|   \____|  |_|    \_)-\___/  |_| \_|   u |_|U
   |||_    \\    >> ||   \\,-._// \\.-,_|___|_,-.||   \\,-._)(|_   )(\\,-      \\    ||   \\,-._// \\_
  (__)_)  (__)  (__)(_")  (_/(__)(__)\_)-' '-(_/ (_")  (_/(__)__) (__)(_/     (__)   (_")  (_/(__) (__)
-```
-#### threepoint (THREEPOINT)
-```
+----
+==== threepoint (THREEPOINT)
+[source]
+----
+
 _|_|_  _ _  _  _  _ . _ _|_
  | | || (/_(/_|_)(_)|| | |
               |
-```
-#### smkeyboard (SMKEYBOARD)
-```
+----
+==== smkeyboard (SMKEYBOARD)
+[source]
+----
+
  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____
 ||s ||||m ||||k ||||e ||||y ||||b ||||o ||||a ||||r ||||d ||
 ||__||||__||||__||||__||||__||||__||||__||||__||||__||||__||
 |/__\||/__\||/__\||/__\||/__\||/__\||/__\||/__\||/__\||/__\|
-```
-#### Pepper (PEPPER)
-```
+----
+==== Pepper (PEPPER)
+[source]
+----
+
   _
  /_/_  _  _  _  _
 /  /_'/_//_//_'/
      /  /
-```
-#### Alphabet (ALPHABET)
-```
+----
+==== Alphabet (ALPHABET)
+[source]
+----
+
  AA  l      h        b         t
 A  A l      h        b         t
 AAAA l ppp  hhh   aa bbb  eee ttt
@@ -200,13 +350,17 @@ A  A l p  p h  h a a b  b e e  t
 A  A l ppp  h  h aaa bbb  ee   tt
        p
        p
-```
-#### B1FF (BONEFF)
-```
+----
+==== B1FF (BONEFF)
+[source]
+----
+
 |31FF
-```
-#### Poison (POISON)
-```
+----
+==== Poison (POISON)
+[source]
+----
+
 
 @@@@@@@    @@@@@@   @@@   @@@@@@    @@@@@@   @@@  @@@
 @@@@@@@@  @@@@@@@@  @@@  @@@@@@@   @@@@@@@@  @@@@ @@@
@@ -219,9 +373,11 @@ A  A l ppp  h  h aaa bbb  ee   tt
  ::       ::::: ::   ::  :::: ::   ::::: ::   ::   ::
  :         : :  :   :    :: : :     : :  :   ::    :
 
-```
-#### AMC Tubes (AMC_TUBES)
-```
+----
+==== AMC Tubes (AMC_TUBES)
+[source]
+----
+
 d s.   d s   sb   sSSs.      sss sssss d       b d ss.  d sss     sss.
 S  ~O  S  S S S  S               S     S       S S    b S       d
 S   `b S   S  S S                S     S       S S    P S       Y
@@ -230,16 +386,20 @@ S    O S      S S                S     S       S S    b S            b
 S    O S      S  S               S      S     S  S    P S            P
 P    P P      P   "sss'          P       "sss"   P `SS  P sSSss ` ss'
 
-```
-#### Cybermedium (CYBERMEDIUM)
-```
+----
+==== Cybermedium (CYBERMEDIUM)
+[source]
+----
+
 ____ _   _ ___  ____ ____ _  _ ____ ___  _ _  _ _  _
 |     \_/  |__] |___ |__/ |\/| |___ |  \ | |  | |\/|
 |___   |   |__] |___ |  \ |  | |___ |__/ | |__| |  |
 
-```
-#### Acrobatic (ACROBATIC)
-```
+----
+==== Acrobatic (ACROBATIC)
+[source]
+----
+
          o                                            o                         o        o
         <|>                                          <|>                       <|>     _<|>_
         / \                                          / >                       < >
@@ -252,32 +412,40 @@ ____ _   _ ___  ____ ____ _  _ ____ ___  _ _  _ _  _
 
 
 
-```
-#### JS Cursive (JS_CURSIVE)
-```
+----
+==== JS Cursive (JS_CURSIVE)
+[source]
+----
+
 
     .  ,       __        ,_   ,    ._,     _
   _/__/_)_   _(_,__(_/__/ (__/_)__/_ (_/__(/_
  _/_
 (/
 
-```
-#### Mini (MINI)
-```
+----
+==== Mini (MINI)
+[source]
+----
+
 
  |\/|o._ o
  |  ||| ||
 
-```
-#### Cyberlarge (CYBERLARGE)
-```
+----
+==== Cyberlarge (CYBERLARGE)
+[source]
+----
+
  _______ __   __ ______  _______  ______        _______  ______  ______ _______
  |         \_/   |_____] |______ |_____/ |      |_____| |_____/ |  ____ |______
  |_____     |    |_____] |______ |    \_ |_____ |     | |    \_ |_____| |______
 
-```
-#### Script (SCRIPT)
-```
+----
+==== Script (SCRIPT)
+[source]
+----
+
 
    ()            o
    /\  __   ,_        _ _|_
@@ -285,43 +453,53 @@ ____ _   _ ___  ____ ____ _  _ ____ ___  _ _  _ _  _
  /(__/\___/   |_/|_/|__/ |_/
                    /|
                    \|
-```
-#### Braced (BRACED)
-```
+----
+==== Braced (BRACED)
+[source]
+----
+
 .----. .---.  .--.  .----..----..----.
 | {_} }} }}_}/ {} \ | }`-'} |__}} {-. \
 | {_} }| } \/  /\  \| },-.} '__}} '-} /
 `----' `-'-'`-'  `-'`----'`----'`----'
 
-```
-#### Stampatello (STAMPATELLO)
-```
+----
+==== Stampatello (STAMPATELLO)
+[source]
+----
+
 .---. .                    .      .  .
 \___  |- ,-. ,-,-. ,-. ,-. |- ,-. |  |  ,-.
     \ |  ,-| | | | | | ,-| |  |-' |  |  | |
 `---' `' `-^ ' ' ' |-' `-^ `' `-' `' `' `-'
                    |
                    '
-```
-#### Small Slant (SMALL_SLANT)
-```
+----
+==== Small Slant (SMALL_SLANT)
+[source]
+----
+
    ____           ____  ______          __
   / __/_ _  ___ _/ / / / __/ /__ ____  / /_
  _\ \/  ' \/ _ `/ / / _\ \/ / _ `/ _ \/ __/
 /___/_/_/_/\_,_/_/_/ /___/_/\_,_/_//_/\__/
 
-```
-#### Weird (WEIRD)
-```
+----
+==== Weird (WEIRD)
+[source]
+----
+
 
  /  |      /         |
 (   | ___    ___  ___|
 | / )|___)| |   )|   )
 |/|/ |__  | |    |__/
 
-```
-#### Larry 3D 2 (LARRY_THREED_TWO)
-```
+----
+==== Larry 3D 2 (LARRY_THREED_TWO)
+[source]
+----
+
  __                                                         __      ____                    ___
 /\ \                                                      /'__`\   /\  _`\                /'___`\
 \ \ \         __      _ __   _ __   __  __               /\_\L\ \  \ \ \/\ \             /\_\ /\ \
@@ -331,9 +509,11 @@ ____ _   _ ___  ____ ____ _  _ ____ ___  _ _  _ _  _
     \/___/  \/__/\/_/  \/_/   \/_/   `/___/> \              \/___/     \/___/              \/_____/
                                         /\___/
                                         \/__/
-```
-#### OS2 (OSTWO)
-```
+----
+==== OS2 (OSTWO)
+[source]
+----
+
 ___oooo_____ooooo____ooooo__
 _oo____oo__oo___oo_oo____oo_
 oo______oo__oo___________oo_
@@ -341,25 +521,31 @@ oo______oo____oo_______ooo__
 _oo____oo__oo___oo___ooo____
 ___oooo_____ooooo__oooooooo_
 ____________________________
-```
-#### Rectangles (RECTANGLES)
-```
+----
+==== Rectangles (RECTANGLES)
+[source]
+----
+
 
  _____            _                   _
 | __  | ___  ___ | |_  ___  ___  ___ | | ___  ___
 |    -|| -_||  _||  _|| .'||   || . || || -_||_ -|
 |__|__||___||___||_|  |__,||_|_||_  ||_||___||___|
                                 |___|
-```
-#### Small Keyboard (SMALL_KEYBOARD)
-```
+----
+==== Small Keyboard (SMALL_KEYBOARD)
+[source]
+----
+
  ____  ____  ____  ____  ____  _________  ____  ____  ____  ____  ____  ____  ____  ____
 ||S ||||m ||||a ||||l ||||l ||||       ||||K ||||e ||||y ||||b ||||o ||||a ||||r ||||d ||
 ||__||||__||||__||||__||||__||||_______||||__||||__||||__||||__||||__||||__||||__||||__||
 |/__\||/__\||/__\||/__\||/__\||/_______\||/__\||/__\||/__\||/__\||/__\||/__\||/__\||/__\|
-```
-#### starstrips (STARSTRIPS)
-```
+----
+==== starstrips (STARSTRIPS)
+[source]
+----
+
 ------------------------  ------   ----------- ----------------------------------- ------------------- ------------
 ************************ ********  *********** *********************************** ********************************
 ----        ---------------------- ----    --- ----        ----------------    ---   ----  ---      -------
@@ -369,9 +555,11 @@ ____________________________
 ------------    ----   ----    --------   ---- ------------    ----    ----   ---- ------------        ------------
 ************    ****   ****    ********    ****************    ****    ****    ****************        ************
 
-```
-#### Big Money-nw (BIG_MONEY_NW)
-```
+----
+==== Big Money-nw (BIG_MONEY_NW)
+[source]
+----
+
 $$$$$$$\  $$\                 $$\      $$\
 $$  __$$\ \__|                $$$\    $$$ |
 $$ |  $$ |$$\  $$$$$$\        $$$$\  $$$$ | $$$$$$\  $$$$$$$\   $$$$$$\  $$\   $$\         $$$$$$$\  $$\  $$\  $$\
@@ -383,9 +571,11 @@ $$$$$$$  |$$ |\$$$$$$$ |      $$ | \_/ $$ |\$$$$$$  |$$ |  $$ |\$$$$$$$\ \$$$$$$
               $$\   $$ |                                                 $$\   $$ |
               \$$$$$$  |                                                 \$$$$$$  |
                \______/                                                   \______/
-```
-#### Kban (KBAN)
-```
+----
+==== Kban (KBAN)
+[source]
+----
+
 '||'  |'  '||
  || .'     || ...   ....   .. ...
  ||'|.     ||'  || '' .||   ||  ||
@@ -393,18 +583,22 @@ $$$$$$$  |$$ |\$$$$$$$ |      $$ | \_/ $$ |\$$$$$$  |$$ |  $$ |\$$$$$$$\ \$$$$$$
 .||.  ||.  '|...'  '|..'|' .||. ||.
 
 
-```
-#### Cola (COLA)
-```
+----
+==== Cola (COLA)
+[source]
+----
+
   .-._   .-._.  .;
 .: (_)`-'      .;'
 ::      .-.   .;  .-.
 ::   _ ;   ;'::  ;   :
 `: .; )`;;'_;;_.-`:::'-'
   `--'
-```
-#### NV Script (NV_SCRIPT)
-```
+----
+==== NV Script (NV_SCRIPT)
+[source]
+----
+
  ,ggg, ,ggggggg,  ,ggg,         ,gg       ,gg,
 dP""Y8,8P"""""Y8bdP""Y8a       ,8P       i8""8i                                           I8
 Yb, `8dP'     `88Yb, `88       d8'       `8,,8'                                           I8
@@ -421,18 +615,22 @@ Yb, `8dP'     `88Yb, `88       d8'       `8,,8'                                 
                                                                              I8
                                                                              I8
                                                                              I8
-```
-#### Shimrod (SHIMROD)
-```
+----
+==== Shimrod (SHIMROD)
+[source]
+----
+
  ,-.  .                     .
 (   ` |   o                 |
  `-.  |-. . ;-.-. ;-. ,-. ,-|
 .   ) | | | | | | |   | | | |
  `-'  ' ' ' ' ' ' '   `-' `-'
 
-```
-#### Crazy (CRAZY)
-```
+----
+==== Crazy (CRAZY)
+[source]
+----
+
        _..._
     .-'_..._''.
   .' .'      '.\
@@ -446,34 +644,42 @@ Yb, `8dP'     `88Yb, `88       d8'       `8,,8'                                 
     `-.______ / | |     / /   | |_ /    /___     / /
              `  |_|     \ \._,\ '/|         ||`-' /
                          `--'  `" |_________| '..'
-```
-#### Glenyn (GLENYN)
-```
+----
+==== Glenyn (GLENYN)
+[source]
+----
+
 ____ __   ____ __   _    __
 |  _\| |  | __\| \|\||_/\| \|\
 | [ \| |__|  ]_|  \|| __/|  \|
 |___/|___/|___/|/\_/|/   |/\_/
-```
-#### 5 Line Oblique (FIVE_LINE_OBLIQUE)
-```
+----
+==== 5 Line Oblique (FIVE_LINE_OBLIQUE)
+[source]
+----
+
 
       ____         / /                                        //   ) )
     //            / /        ( )       __        ___         //   / /     / __       //     ( )      ___                   ___
    //__          / /        / /     //   ) )   //___) )     //   / /     //   ) )   //     / /     //   ) )   //   / /   //___) )
        ) )      / /        / /     //   / /   //           //   / /     //   / /   //     / /     ((___/ /   //   / /   //
  ((___/ /      / /____/ / / /     //   / /   ((____       ((___/ /     ((___/ /   //     / /          ( (   ((___( (   ((____
-```
-#### Train (TRAIN)
-```
+----
+==== Train (TRAIN)
+[source]
+----
+
   _____                     _
  |_   _|    _ _   __ _     (_)    _ _
    | |     | '_| / _` |    | |   | ' \
   _|_|_   _|_|_  \__,_|   _|_|_  |_||_|
 _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
 "`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'
-```
-#### Patorjk's Cheese (PATORJK_S_CHEESE)
-```
+----
+==== Patorjk's Cheese (PATORJK_S_CHEESE)
+[source]
+----
+
 
      _____          ____   _________________       _____         _____           ____  ____    ____           ______              _____    ____   ____      ______        ______            ______       ______
  ___|\    \    ____|\   \ /                 \ ____|\    \    ___|\    \         |    ||    |  |    |      ___|\     \         ___|\    \  |    | |    | ___|\     \   ___|\     \       ___|\     \  ___|\     \
@@ -488,9 +694,11 @@ _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
   \(           \(      )/      \(               \(    )/      \(     )/      \(   )/    \(       )/      \(    )/              \( |____|/   \(     )/    \( |_____|/   \( |_____|/     \(    )/       \( |_____|/
    '            '      '        '                '    '        '     '        '   '      '       '        '    '                '   )/       '     '      '    )/       '    )/         '    '         '    )/
                                                                                                                                     '                          '             '                              '
-```
-#### Soft (SOFT)
-```
+----
+==== Soft (SOFT)
+[source]
+----
+
 
  ,---.          ,---.  ,--.
 '   .-'  ,---. /  .-',-'  '-.
@@ -498,66 +706,84 @@ _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
 .-'    |' '-' '|  .-'  |  |
 `-----'  `---' `--'    `--'
 
-```
-#### Spliff (SPLIFF)
-```
+----
+==== Spliff (SPLIFF)
+[source]
+----
+
  _____  _____  ____   ___  _____  _____
 /  ___>/  _  \/  _/  /___\/   __\/   __\
 |___  ||   __/|  |---|   ||   __||   __|
 <_____/\__/   \_____/\___/\__/   \__/
 
-```
-#### Italic (ITALIC)
-```
+----
+==== Italic (ITALIC)
+[source]
+----
+
 
  /_/_ /'_
 ( /(/(/(
 
-```
-#### Small Shadow (SMALL_SHADOW)
-```
+----
+==== Small Shadow (SMALL_SHADOW)
+[source]
+----
+
    __|             | |   __| |              |
  \__ \  ` \   _` | | | \__ \   \   _` |  _` |  _ \\ \  \ /
  ____/_|_|_|\__,_|_|_| ____/_| _|\__,_|\__,_|\___/ \_/\_/
 
-```
-#### Elite (ELITE)
-```
+----
+==== Elite (ELITE)
+[source]
+----
+
 ▄▄▄ .▄▄▌  ▪  ▄▄▄▄▄▄▄▄ .
 ▀▄.▀·██•  ██ •██  ▀▄.▀·
 ▐▀▀▪▄██▪  ▐█· ▐█.▪▐▀▀▪▄
 ▐█▄▄▌▐█▌▐▌▐█▌ ▐█▌·▐█▄▄▌
  ▀▀▀ .▀▀▀ ▀▀▀ ▀▀▀  ▀▀▀
-```
-#### Filter (FILTER)
-```
+----
+==== Filter (FILTER)
+[source]
+----
+
   o8boooo    8888 888      888888888   ,d8PPPP   ,dbPPPp
   88booop    8888 888         '88d     d88ooo    d88ooP'
   88b        8888 888        '888    ,88'      ,88' P'
   88P        8888 888PPPPP '88p      88bdPPP   88  do
 
-```
-#### Octal (OCTAL)
-```
+----
+==== Octal (OCTAL)
+[source]
+----
+
 117 143 164 141 154
-```
-#### Straight (STRAIGHT)
-```
+----
+==== Straight (STRAIGHT)
+[source]
+----
+
  __
 (_ |_ _ _ . _ |_ |_
 __)|_| (_||(_)| )|_
            _/
-```
-#### Thorned (THORNED)
-```
+----
+==== Thorned (THORNED)
+[source]
+----
+
  ___, ,  _, ,_  ,  ,  _,  ,_
 ' | |_|,/ \,|_) |\ | /_,  | \,
   |'| |'\_/'| \ |'\|'\_  _|_/
   ' ' ` '   '  `'  `   `'
 
-```
-#### Rozzo (ROZZO)
-```
+----
+==== Rozzo (ROZZO)
+[source]
+----
+
 888 88e
 888 888D  e88 88e  8P d8P 8P d8P  e88 88e
 888 88"  d888 888b P d8P  P d8P  d888 888b
@@ -565,18 +791,22 @@ __)|_| (_||(_)| )|_
 888 88b,  "88 88"  d8P d8 d8P d8  "88 88"
 
 
-```
-#### horizontalright (HORIZONTALRIGHT)
-```
+----
+==== horizontalright (HORIZONTALRIGHT)
+[source]
+----
+
  _______   _______   _______   _     _   _     _   _______   _______         _   ______    _______   _______   _     _   _______   _______         _
 \__   __\ /  ____ \ |_  ___ \ | |___| | | '.  | | /  ____ \ |__   _.'  _____\ | |_. _  '. / ______\ |_  ___ \ | |___| | / .---. \ \__   __\  _____\ |
  __| |__  | /___/ |  /  \_/ | |  ___  | | ._'.| | | /___/ |  _.' .'_  \______ |  _||_/  / | \        /  \_/ | |  ___  | \_'-. / |  __| |__  \______ |
 \_______\ \_______/ |_/'.__.' |_|   |_| |_| '.__| \_______/ |_______|       /_| |_____.'  |_/       |_/'.__.' |_|   |_|   '.| \_/ \_______\       /_|
 
 
-```
-#### Delta Corps Priest 1 (DELTA_CORPS_PRIEST_ONE)
-```
+----
+==== Delta Corps Priest 1 (DELTA_CORPS_PRIEST_ONE)
+[source]
+----
+
 ████████▄     ▄████████  ▄█           ███        ▄████████       ▄████████  ▄██████▄     ▄████████    ▄███████▄    ▄████████         ▄███████▄    ▄████████  ▄█     ▄████████    ▄████████     ███
 ███   ▀███   ███    ███ ███       ▀█████████▄   ███    ███      ███    ███ ███    ███   ███    ███   ███    ███   ███    ███        ███    ███   ███    ███ ███    ███    ███   ███    ███ ▀█████████▄
 ███    ███   ███    █▀  ███          ▀███▀▀██   ███    ███      ███    █▀  ███    ███   ███    ███   ███    ███   ███    █▀         ███    ███   ███    ███ ███▌   ███    █▀    ███    █▀     ▀███▀▀██
@@ -586,9 +816,11 @@ __)|_| (_||(_)| )|_
 ███   ▄███   ███    ███ ███▌    ▄     ███       ███    ███      ███    ███ ███    ███   ███    ███   ███           ▄█    ███        ███          ███    ███ ███    ███    ███    ▄█    ███     ███
 ████████▀    ██████████ █████▄▄██    ▄████▀     ███    █▀       ████████▀   ▀██████▀    ███    ███  ▄████▀       ▄████████▀        ▄████▀        ███    ███ █▀     ██████████  ▄████████▀     ▄████▀
                         ▀                                                               ███    ███                                               ███    ███
-```
-#### Fuzzy (FUZZY)
-```
+----
+==== Fuzzy (FUZZY)
+[source]
+----
+
 .---.
 : .--'
 : `;.-..-..---. .---. .-..-.
@@ -596,9 +828,11 @@ __)|_| (_||(_)| )|_
 :_; `.__.'`.___;`.___;`._. ;
                        .-. :
                        `._.'
-```
-#### Whimsy (WHIMSY)
-```
+----
+==== Whimsy (WHIMSY)
+[source]
+----
+
                 d8b        d8,
                 ?88       `8P
                  88b
@@ -609,17 +843,21 @@ __)|_| (_||(_)| )|_
                                                            )88
                                                           ,d8P
                                                        `?888P'
-```
-#### smscript (SMSCRIPT)
-```
+----
+==== smscript (SMSCRIPT)
+[source]
+----
+
 
   ,           ,   _   ,_  o    _|_
  / \_/|/|/|  / \_/   /  | | |/\_|
   \/  | | |_/ \/ \__/   |/|/|_/ |_/
                            (|
-```
-#### amcneko (AMCNEKO)
-```
+----
+==== amcneko (AMCNEKO)
+[source]
+----
+
 
 .sSSSSs.    .sSSSsSS SSsSSSSS .sSSSSs.    .sSSSs.  SSSSS .sSSSSs.    .sSSS  SSSSS  .sSSSSs.
 S SSSSSSSs. S SSS  SSS  SSSSS S SSSSSSSs. S SSS SS SSSSS S SSSSSSSs. S SSS SSSSS   S SSSSSSSs.
@@ -630,9 +868,11 @@ S;;;S SSSSS S;;;S       SSSSS S;;;S SSSSS S;;;S    SSSSS S;;;S       S;;;S  SSSS
 S%%%S SSSSS S%%%S       SSSSS S%%%S SSSSS S%%%S    SSSSS S%%%S SSSSS S%%%S  SSSSS  S%%%S SSSSS
 SSSSS SSSSS SSSSS       SSSSS SSSSSsSSSSS SSSSS    SSSSS SSSSSsSS;:' SSSSS   SSSSS SSSSSsSSSSS
 
-```
-#### Big Money-ne (BIG_MONEY_NE)
-```
+----
+==== Big Money-ne (BIG_MONEY_NE)
+[source]
+----
+
  /$$$$$$$  /$$                 /$$      /$$
 | $$__  $$|__/                | $$$    /$$$
 | $$  \ $$ /$$  /$$$$$$       | $$$$  /$$$$  /$$$$$$  /$$$$$$$   /$$$$$$  /$$   /$$         /$$$$$$$   /$$$$$$
@@ -644,9 +884,11 @@ SSSSS SSSSS SSSSS       SSSSS SSSSSsSSSSS SSSSS    SSSSS SSSSSsSS;:' SSSSS   SSS
                /$$  \ $$                                                  /$$  | $$
               |  $$$$$$/                                                 |  $$$$$$/
                \______/                                                   \______/
-```
-#### amcslash (AMCSLASH)
-```
+----
+==== amcslash (AMCSLASH)
+[source]
+----
+
 
 .s5SSSs.  .s5ssSs.  .s5SSSs.  .s5SSSs.  .s        .s5SSSs.  .s5SSSs.  .s    s.
       SS.    SS SS.       SS.       SS.                 SS.       SS.       SS.
@@ -657,17 +899,21 @@ SS    `:; SS    `:; SS              `:; SS        SS    `:;       `:; SS    `:;
 SS    ;,. SS    ;,. SS    ;,. .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    ;,.
 :;    ;:' :;    ;:' `:;;;;;:' `:;;;;;:' `:;;;;;:' :;    ;:' `:;;;;;:' :;    ;:'
 
-```
-#### Efti Italic (EFTI_ITALIC)
-```
+----
+==== Efti Italic (EFTI_ITALIC)
+[source]
+----
+
    ___   _        __
   / _/ ,'_7/7 () / //7  _   /7() __
  / _/ /_7 /_7/7 / //_7,'o| ///7,','
 /___///  // // /_///  |_,7//// \_\
 
-```
-#### flowerpower (FLOWERPOWER)
-```
+----
+==== flowerpower (FLOWERPOWER)
+[source]
+----
+
  ________   .---.       ,-----.    .--.      .--.    .-''-.  .-------.    .-------.     ,-----.    .--.      .--.    .-''-.  .-------.
 |        |  | ,_|     .'  .-,  '.  |  |_     |  |  .'_ _   \ |  _ _   \   \  _(`)_ \  .'  .-,  '.  |  |_     |  |  .'_ _   \ |  _ _   \
 |   .----',-./  )    / ,-.|  \ _ \ | _( )_   |  | / ( ` )   '| ( ' )  |   | (_ o._)| / ,-.|  \ _ \ | _( )_   |  | / ( ` )   '| ( ' )  |
@@ -678,9 +924,11 @@ SS    ;,. SS    ;,. SS    ;,. .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    ;,.
 |   |       |        \'. \_/``".'  |    /  \    |  \       / |  |  \    / /   )       '. \_/``".'  |    /  \    |  \       / |  |  \    /
 '---'       `--------`  '-----'    `---'    `---`   `'-..-'  ''-'   `'-'  `---'         '-----'    `---'    `---`   `'-..-'  ''-'   `'-'
 
-```
-#### starwars (STARWARS)
-```
+----
+==== starwars (STARWARS)
+[source]
+----
+
      _______..___________.     ___      .______      ____    __    ____      ___      .______           _______.
     /       ||           |    /   \     |   _  \     \   \  /  \  /   /     /   \     |   _  \         /       |
    |   (----``---|  |----`   /  ^  \    |  |_)  |     \   \/    \/   /     /  ^  \    |  |_)  |       |   (----`
@@ -688,28 +936,36 @@ SS    ;,. SS    ;,. SS    ;,. .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    ;,.
 .----)   |       |  |      /  _____  \  |  |\  \----.   \    /\    /     /  _____  \  |  |\  \----..----)   |
 |_______/        |__|     /__/     \__\ | _| `._____|    \__/  \__/     /__/     \__\ | _| `._____||_______/
 
-```
-#### kontoslant (KONTOSLANT)
-```
+----
+==== kontoslant (KONTOSLANT)
+[source]
+----
+
  /.�  /�/  /1 / �/�  /�/  /��  /  /1  /1 / �/�
 /�.  /./  / 1/  /   /./  ../  /. /�/ / 1/  /
-```
-#### Cybersmall (CYBERSMALL)
-```
+----
+==== Cybersmall (CYBERSMALL)
+[source]
+----
+
  ____ _ _ ___  ____ ____ ____ _  _ ____ _    _
  |___  Y  |==] |=== |--< ==== |\/| |--| |___ |___
-```
-#### Ticks Slant (TICKS_SLANT)
-```
+----
+==== Ticks Slant (TICKS_SLANT)
+[source]
+----
+
      _/\/\/\/\/\/\__/\/\________________/\/\__________________________/\/\/\/\/\__/\/\______________________________/\/\_____
     _____/\/\________________/\/\/\/\__/\/\__/\/\____/\/\/\/\______/\/\__________/\/\____/\/\/\______/\/\/\/\____/\/\/\/\/\_
    _____/\/\______/\/\____/\/\________/\/\/\/\____/\/\/\/\__________/\/\/\/\____/\/\________/\/\____/\/\__/\/\____/\/\_____
   _____/\/\______/\/\____/\/\________/\/\/\/\__________/\/\______________/\/\__/\/\____/\/\/\/\____/\/\__/\/\____/\/\_____
  _____/\/\______/\/\/\____/\/\/\/\__/\/\__/\/\__/\/\/\/\________/\/\/\/\/\____/\/\/\__/\/\/\/\/\__/\/\__/\/\____/\/\/\___
 ________________________________________________________________________________________________________________________
-```
-#### dosrebel (DOSREBEL)
-```
+----
+==== dosrebel (DOSREBEL)
+[source]
+----
+
      ����                                 �����            ����
 �    ����                                 �����           �����
 �   �����    ����    ���   ������    ����   ������    ���� ����
@@ -721,9 +977,11 @@ ________________________________________________________________________________
 ������   �����   �����  ��       ����    �����    ����
 
 
-```
-#### AMC Razor2 (AMC_RAZORTWO)
-```
+----
+==== AMC Razor2 (AMC_RAZORTWO)
+[source]
+----
+
    . .       . .    .       . .          . .       . .                 . .       . .       . .
 .+'|=|`+. .+'|=|`+.=|`+. .+'|=|`+.    .+'|=|`+. .+'|=|`+. |~~|=|~~| .+'|=|`+. .+'|=|`+. .+'|=|`+.
 |  | |  | |  | `+ | `+ | |  | `+.|    |  | |  | |  | |  | |.+' |  | |  | |  | |  | |  | |.+' |  |
@@ -733,29 +991,37 @@ ________________________________________________________________________________
 |  | |  | |  |  | |  | | |  | .+'|    |  | |  | |  | |  | |  | .+'| |  | |  | |  | |  | |  | .+'|
 `+.| |..| `+.|  |.|  |+' `+.|=|.+'    `+.| |.+' `+.| |..| |..|=|..| `+.|=|.+' `+.| |.+' `+.|=|.+'
 
-```
-#### Sub-Zero (SUB_ZERO)
-```
+----
+==== Sub-Zero (SUB_ZERO)
+[source]
+----
+
  ______     __  __     ______     ______     ______     ______     ______
 /\  ___\   /\ \/\ \   /\  == \   /\___  \   /\  ___\   /\  == \   /\  __ \
 \ \___  \  \ \ \_\ \  \ \  __<   \/_/  /__  \ \  __\   \ \  __<   \ \ \/\ \
  \/\_____\  \ \_____\  \ \_____\   /\_____\  \ \_____\  \ \_\ \_\  \ \_____\
   \/_____/   \/_____/   \/_____/   \/_____/   \/_____/   \/_/ /_/   \/_____/
 
-```
-#### Hieroglyphs (HIEROGLYPHS)
-```
+----
+==== Hieroglyphs (HIEROGLYPHS)
+[source]
+----
+
 ()  ;.                                    ,-.       ,-.\\ \\               ,-.
 () ; |          ||          .-.   ____   <,- \_____/  ` \\ \\         ___  | |
 () `.| ....     ||  .---.  _|_ \  /  \     /  ___. \     \\ \\   __  |   | | '
 /\   | `=.`''===.' '.___.' (_)   /_/\_\ ,_(__/ ,_(__\     \\ \\ |__| | |_| |
-```
-#### Wow (WOW)
-```
+----
+==== Wow (WOW)
+[source]
+----
+
 \\/\\/ [[]] \\/\\/
-```
-#### Nancyj (NANCYJ)
-```
+----
+==== Nancyj (NANCYJ)
+[source]
+----
+
 888888ba                                      oo
 88    `8b
 88     88 .d8888b. 88d888b. .d8888b. dP    dP dP
@@ -764,16 +1030,20 @@ ________________________________________________________________________________
 dP     dP `88888P8 dP    dP `88888P' `8888P88 88
                                           .88 88
                                       d8888P  dP
-```
-#### JS Stick Letters (JS_STICK_LETTERS)
-```
+----
+==== JS Stick Letters (JS_STICK_LETTERS)
+[source]
+----
+
       __      __  ___    __                ___ ___ ___  ___  __   __
    | /__`    /__`  |  | /  ` |__/    |    |__   |   |  |__  |__) /__`
 \__/ .__/    .__/  |  | \__, |  \    |___ |___  |   |  |___ |  \ .__/
 
-```
-#### Red Phoenix (RED_PHOENIX)
-```
+----
+==== Red Phoenix (RED_PHOENIX)
+[source]
+----
+
 __________             .___    __________ .__                             .__
 \______   \  ____    __| _/    \______   \|  |__    ____    ____    ____  |__|___  ___
  |       _/_/ __ \  / __ |      |     ___/|  |  \  /  _ \ _/ __ \  /    \ |  |\  \/  /
@@ -781,39 +1051,51 @@ __________             .___    __________ .__                             .__
  |____|_  / \___  >\____ |      |____|    |___|  / \____/  \___  >|___|  /|__|/__/\_ \
         \/      \/      \/                     \/              \/      \/           \/
 
-```
-#### Binary (BINARY)
-```
+----
+==== Binary (BINARY)
+[source]
+----
+
 01000010 01101001 01101110 01100001 01110010 01111001
-```
-#### Calvin S (CALVIN_S)
-```
+----
+==== Calvin S (CALVIN_S)
+[source]
+----
+
 ╔═╗┌─┐┬ ┬  ┬┬┌┐┌  ╔═╗
 ║  ├─┤│ └┐┌┘││││  ╚═╗
 ╚═╝┴ ┴┴─┘└┘ ┴┘└┘  ╚═╝
-```
-#### O8 (OEIGHT)
-```
+----
+==== O8 (OEIGHT)
+[source]
+----
+
   ooooooo     ooooooo
 o888   888o o888   888o
 888     888  888888888
 888o   o888 888o   o888
   88ooo88     88ooo88
 
-```
-#### Mnemonic (MNEMONIC)
-```
+----
+==== Mnemonic (MNEMONIC)
+[source]
+----
+
 Mnemonic
-```
-#### Lockergnome (LOCKERGNOME)
-```
+----
+==== Lockergnome (LOCKERGNOME)
+[source]
+----
+
 ::|              :|
 ::|    ,::\ .::/ :|_/ :~~/ :::| /::| :::\ ,::\ :\/| :~~/
 ::::::|`::/ `::\ :|~\ :::, :|   \::| :|:| `::/ :::| :::,
                                 ,.:/
-```
-#### oldbanner (OLDBANNER)
-```
+----
+==== oldbanner (OLDBANNER)
+[source]
+----
+
 
  ####  #      #####  #####    ##   #    # #    # ###### #####
 #    # #      #    # #    #  #  #  ##   # ##   # #      #    #
@@ -821,9 +1103,11 @@ Mnemonic
 #    # #      #    # #    # ###### #  # # #  # # #      #####
 #    # #      #    # #    # #    # #   ## #   ## #      #   #
  ####  ###### #####  #####  #    # #    # #    # ###### #    #
-```
-#### Caligraphy2 (CALIGRAPHYTWO)
-```
+----
+==== Caligraphy2 (CALIGRAPHYTWO)
+[source]
+----
+
 
       # ###            ###                                                        /
     /  /###  /          ###    #                                                #/
@@ -844,9 +1128,11 @@ Mnemonic
                                       ####   ###                     ##               /     #####   ### e
                                     /######  /#                      ##              /    /#######  /#  r
                                    /     ###/                         ##            /    /      ###/    2
-```
-#### smpoison (SMPOISON)
-```
+----
+==== smpoison (SMPOISON)
+[source]
+----
+
 
  @@@@@@ @@@@@@@@@@  @@@@@@@   @@@@@@  @@@  @@@@@@  @@@@@@  @@@  @@@
 !@@     @@! @@! @@! @@!  @@@ @@!  @@@ @@! !@@     @@!  @@@ @@!@!@@@
@@ -854,9 +1140,11 @@ Mnemonic
     !:! !!:     !!: !!:      !!:  !!! !!:     !:! !!:  !!! !!:  !!!
 ::.: :   :      :    :        : :. :  :   ::.: :   : :. :  ::    :
 
-```
-#### Caligraphy (CALIGRAPHY)
-```
+----
+==== Caligraphy (CALIGRAPHY)
+[source]
+----
+
 
       * ***               ***                                                                *
     *  ****  *             ***      *                                                      **
@@ -878,24 +1166,30 @@ Mnemonic
                                            *******  **                           **             *    *      ****
                                           *     ****                                           *
 
-```
-#### smallcaps (SMALLCAPS)
-```
+----
+==== smallcaps (SMALLCAPS)
+[source]
+----
+
   ___   _   _    _    _      _      ___    _    ____    ___
  (  _( ) \_/ (  )_\  ) |    ) |    / _(   )_\  )  _)\  (  _(
  _) \  |  _  | /( )\ | (__  | (__  ))_   /( )\ | '__/  _) \
 )____) )_( )_()_/ \_()____( )____( \__( )_/ \_()_(    )____)
 
-```
-#### Stick Letters (STICK_LETTERS)
-```
+----
+==== Stick Letters (STICK_LETTERS)
+[source]
+----
+
  __  ___    __                ___ ___ ___  ___  __   __
 /__`  |  | /  ` |__/    |    |__   |   |  |__  |__) /__`
 .__/  |  | \__, |  \    |___ |___  |   |  |___ |  \ .__/
 
-```
-#### Doh (DOH)
-```
+----
+==== Doh (DOH)
+[source]
+----
+
 
 
 DDDDDDDDDDDDD                        hhhhhhh
@@ -921,9 +1215,11 @@ DDDDDDDDDDDDD           ooooooooooo   hhhhhhh     hhhhhhh
 
 
 
-```
-#### Crawford2 (CRAWFORDTWO)
-```
+----
+==== Crawford2 (CRAWFORDTWO)
+[source]
+----
+
     __  ____    ____  __    __  _____   ___   ____   ___
    /  ]|    \  /    ||  |__|  ||     | /   \ |    \ |   \
   /  / |  D  )|  o  ||  |  |  ||   __||     ||  D  )|    \
@@ -932,9 +1228,11 @@ DDDDDDDDDDDDD           ooooooooooo   hhhhhhh     hhhhhhh
 \     ||  .  \|  |  | \      / |  |   |     ||  .  \|     |
  \____||__|\_||__|__|  \_/\_/  |__|    \___/ |__|\_||_____|
 
-```
-#### Tubular (TUBULAR)
-```
+----
+==== Tubular (TUBULAR)
+[source]
+----
+
 O~~~ O~~~~~~        O~~               O~~
      O~~            O~~               O~~
      O~~    O~~  O~~O~~      O~~  O~~ O~~   O~~    O~ O~~~
@@ -943,43 +1241,53 @@ O~~~ O~~~~~~        O~~               O~~
      O~~    O~~  O~~O~~   O~~O~~  O~~ O~~O~~   O~~  O~~
      O~~      O~~O~~O~~ O~~    O~~O~~O~~~  O~~ O~~~O~~~
 
-```
-#### peaksslant (PEAKSSLANT)
-```
+----
+==== peaksslant (PEAKSSLANT)
+[source]
+----
+
      _____________________________________/\/\________________________________/\/\______________________________/\/\_____
     _/\/\/\/\______/\/\/\____/\/\/\______/\/\__/\/\____/\/\/\/\____/\/\/\/\__/\/\____/\/\/\______/\/\/\/\____/\/\/\/\/\_
    _/\/\__/\/\__/\/\/\/\/\______/\/\____/\/\/\/\____/\/\/\/\____/\/\/\/\____/\/\________/\/\____/\/\__/\/\____/\/\_____
   _/\/\/\/\____/\/\________/\/\/\/\____/\/\/\/\__________/\/\________/\/\__/\/\____/\/\/\/\____/\/\__/\/\____/\/\_____
  _/\/\__________/\/\/\/\__/\/\/\/\/\__/\/\__/\/\__/\/\/\/\____/\/\/\/\____/\/\/\__/\/\/\/\/\__/\/\__/\/\____/\/\/\___
 _/\/\_______________________________________________________________________________________________________________
-```
-#### usaflag (USAFLAG)
-```
+----
+==== usaflag (USAFLAG)
+[source]
+----
+
  :::  === :::===  :::====  :::===== :::      :::====  :::=====
  :::  === :::     :::  === :::      :::      :::  === :::
  ===  ===  =====  ======== ======   ===      ======== === =====
  ===  ===     === ===  === ===      ===      ===  === ===   ===
   ======  ======  ===  === ===      ======== ===  ===  =======
 
-```
-#### Bright (BRIGHT)
-```
+----
+==== Bright (BRIGHT)
+[source]
+----
+
 .#####...#####...######...####...##..##..######.
 .##..##..##..##....##....##......##..##....##...
 .#####...#####.....##....##.###..######....##...
 .##..##..##..##....##....##..##..##..##....##...
 .#####...##..##..######...####...##..##....##...
 ................................................
-```
-#### Madrid (MADRID)
-```
+----
+==== Madrid (MADRID)
+[source]
+----
+
 /\/\       |        |
 |==| /=| /=| /= = /=|
 \  / \=| \=| |  | \=|
 
-```
-#### AMC Slash (AMC_SLASH)
-```
+----
+==== AMC Slash (AMC_SLASH)
+[source]
+----
+
 .s5SSSs.  .s5ssSs.  .s5SSSs.      .s5SSSs.
       SS.    SS SS.       SS.           SS. .s        .s5SSSs.  .s5SSSs.  .s    s.
 sS    S%S sS SS S%S sS    `:;     sS    `:;                 SS.       SS.       SS.
@@ -990,9 +1298,11 @@ SS    `:; SS    `:; SS                  `:; SS        SS    `:;       `:; SS    
 SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    ;,.
 :;    ;:' :;    ;:' `:;;;;;:'     `:;;;;;:' `:;;;;;:' :;    ;:' `:;;;;;:' :;    ;:'
 
-```
-#### Fun Face (FUN_FACE)
-```
+----
+==== Fun Face (FUN_FACE)
+[source]
+----
+
           wWw  wWw\\\  ///                   c  c
     wWw   (O)  (O)((O)(O))      wWw   /)     (OO)  wWw
     (O)_  / )  ( \ | \ ||       (O)_(o)(O) ,'.--.) (O)_
@@ -1000,9 +1310,11 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
   (  _)  | \____/ ||| \ |     (  _) |(__)|| \___ (  _)
    )/    '. `--' .`||  ||      )/   /,-. |'.    ) `.__)
   (        `-..-' (_/  \_)    (    -'   ''  `-.'
-```
-#### Wet Letter (WET_LETTER)
-```
+----
+==== Wet Letter (WET_LETTER)
+[source]
+----
+
 .-.  .-.,---. _______  ,-.    ,---. _______  _______ ,---.  ,---.
 | |/\| || .-'|__   __| | |    | .-'|__   __||__   __|| .-'  | .-.\
 | /  \ || `-.  )| |    | |    | `-.  )| |     )| |   | `-.  | `-'/
@@ -1010,9 +1322,11 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
 |(/  \ ||  `--. | |    | `--. |  `--. | |      | |   |  `--.| |\ \
 (_)   \|/( __.' `-'    |( __.'/( __.' `-'      `-'   /( __.'|_| \)\
        (__)            (_)   (__)                   (__)        (__)
-```
-#### Fraktur (FRAKTUR)
-```
+----
+==== Fraktur (FRAKTUR)
+[source]
+----
+
     .....                                         ..           s
  .H8888888x.  '`+                           < .z@8"`          :8
 :888888888888x.  !    .u    .                !@88E           .88       x.    .        .u    .
@@ -1028,16 +1342,20 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
  '888       X88f
   '%8:     .8*"
      ^----~"`
-```
-#### Bulbhead (BULBHEAD)
-```
+----
+==== Bulbhead (BULBHEAD)
+[source]
+----
+
  ____  __  __  __    ____  _   _  ____    __    ____
 (  _ \(  )(  )(  )  (  _ \( )_( )( ___)  /__\  (  _ \
  ) _ < )(__)(  )(__  ) _ < ) _ (  )__)  /(__)\  )(_) )
 (____/(______)(____)(____/(_) (_)(____)(__)(__)(____/
-```
-#### Ghost (GHOST)
-```
+----
+==== Ghost (GHOST)
+[source]
+----
+
              ('-. .-.               .-')    .-') _
             ( OO )  /              ( OO ). (  OO) )
   ,----.    ,--. ,--. .-'),-----. (_)---\_)/     '._
@@ -1047,9 +1365,11 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
 (|  | '. (_/|  .-.  |  \ |  | |  |.-._)   \   |  |
  |  '--'  | |  | |  |   `'  '-'  '\       /   |  |
   `------'  `--' `--'     `-----'  `-----'    `--'
-```
-#### Dot Matrix (DOT_MATRIX)
-```
+----
+==== Dot Matrix (DOT_MATRIX)
+[source]
+----
+
     _  _  _  _                      _                  _           _                  _                         _
    (_)(_)(_)(_)                    (_)                (_) _     _ (_)                (_)                       (_)
     (_)      (_)_     _  _  _    _ (_) _  _           (_)(_)   (_)(_)   _  _  _    _ (_) _  _  _       _  _  _  _     _         _
@@ -1060,26 +1380,32 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
    (_)(_)(_)(_)      (_)(_)(_)       (_)(_)           (_)         (_)  (_)(_)(_)  (_)  (_)(_)   (_)         (_)(_)(_)(_)       (_)
 
 
-```
-#### santaclara (SANTACLARA)
-```
+----
+==== santaclara (SANTACLARA)
+[source]
+----
+
                              _
                 _/_         //
  (   __,  _ _   /  __,  _, // __,  _   __,
 /_)_(_/(_/ / /_(__(_/(_(__(/_(_/(_/ (_(_/(_
 
 
-```
-#### eftitalic (EFTITALIC)
-```
+----
+==== eftitalic (EFTITALIC)
+[source]
+----
+
        _
   __ ,'_7/7 ()/7  _   /7() __
 ,'o//_7 /_7/7/_7,'o| ///7,','
 |_(//  // ////  |_,7//// \_\
 
-```
-#### Bloody (BLOODY)
-```
+----
+==== Bloody (BLOODY)
+[source]
+----
+
  ▄▄▄▄    ██▓     ▒█████   ▒█████  ▓█████▄▓██   ██▓
 ▓█████▄ ▓██▒    ▒██▒  ██▒▒██▒  ██▒▒██▀ ██▌▒██  ██▒
 ▒██▒ ▄██▒██░    ▒██░  ██▒▒██░  ██▒░██   █▌ ▒██ ██░
@@ -1090,9 +1416,11 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
  ░    ░   ░ ░   ░ ░ ░ ▒  ░ ░ ░ ▒   ░ ░  ░ ▒ ▒ ░░
  ░          ░  ░    ░ ░      ░ ░     ░    ░ ░
       ░                            ░      ░ ░
-```
-#### Bear (BEAR)
-```
+----
+==== Bear (BEAR)
+[source]
+----
+
    _     _      _     _      _     _      _     _
   (c).-.(c)    (c).-.(c)    (c).-.(c)    (c).-.(c)
    / ._. \      / ._. \      / ._. \      / ._. \
@@ -1102,9 +1430,11 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
  _.' `-' '._  _.' `-' '._  _.' `-' '._  _.' `-' '._
 (.-./`-'\.-.)(.-./`-'\.-.)(.-./`-'\.-.)(.-./`-`\.-.)
  `-'     `-'  `-'     `-'  `-'     `-'  `-'     `-'
-```
-#### The Edge (THE_EDGE)
-```
+----
+==== The Edge (THE_EDGE)
+[source]
+----
+
    ▄▄▄▄▀ ▄  █ ▄███▄       ▄███▄   ██▄     ▄▀  ▄███▄
 ▀▀▀ █   █   █ █▀   ▀      █▀   ▀  █  █  ▄▀    █▀   ▀
     █   ██▀▀█ ██▄▄        ██▄▄    █   █ █ ▀▄  ██▄▄
@@ -1112,60 +1442,76 @@ SS    ;,. SS    ;,. SS    ;,.     .,;   ;,. SS    ;,. SS    ;,. .,;   ;,. SS    
   ▀        █  ▀███▀       ▀███▀   ███▀   ███  ▀███▀
           ▀
 
-```
-#### SL Script (SL_SCRIPT)
-```
+----
+==== SL Script (SL_SCRIPT)
+[source]
+----
+
   ()     _    ()
   /\   _//    /\                _/_
  /  )  /     /  )  _. __  o _   /
 /__/__/___  /__/__(__/ (_<_/_)_<__
                           /
                          '
-```
-#### AMC 3 Line (AMC_THREE_LINE)
-```
+----
+==== AMC 3 Line (AMC_THREE_LINE)
+[source]
+----
+
 .-. .  . .-.   -.   .   .-. . . .-.
 |-| |\/| |     -|   |    |  |\| |-
 ` ' '  ` `-'   -'   `-' `-' ' ` `-'
 
-```
-#### Muzzle (MUZZLE)
-```
+----
+==== Muzzle (MUZZLE)
+[source]
+----
+
                         __
 |\ /| |  | >>> >>> |   |
 | < | |  |  /   /  |   |<<
 |   | '<<' /<< /<< |<< |__
-```
-#### amcslder (AMCSLDER)
-```
+----
+==== amcslder (AMCSLDER)
+[source]
+----
+
                                        ______                                          ____
       .'.             .'. .`.        .~      ~.             ..'''' |        |``````.  |            |`````````,
     .''```.         .'   `   `.     |                    .''       |        |       | |______      |'''|'''''
   .'       `.     .'           `.   |                 ..'          |        |       | |            |    `.
 .'           `. .'               `.  `.______.' ....''             |_______ |......'  |___________ |      `.
 
-```
-#### Digital (DIGITAL)
-```
+----
+==== Digital (DIGITAL)
+[source]
+----
+
  +-+-+-+-+-+-+-+
  |D|i|g|i|t|a|l|
  +-+-+-+-+-+-+-+
-```
-#### 4Max (FOURMAX)
-```
+----
+==== 4Max (FOURMAX)
+[source]
+----
+
   dP88  8b    d8    db    Yb  dP
  dP 88  88b  d88   dPYb    YbdP
 d888888 88YbdP88  dP__Yb   dPYb
     88  88 YY 88 dP""""Yb dP  Yb
-```
-#### Short (SHORT)
-```
+----
+==== Short (SHORT)
+[source]
+----
+
 (`|_    |-
 _)||()|`|_
 
-```
-#### Tanja (TANJA)
-```
+----
+==== Tanja (TANJA)
+[source]
+----
+
 T)tttttt                      ##
    T)
    T)    a)AAAA  n)NNNN       j) a)AAAA
@@ -1174,17 +1520,21 @@ T)tttttt                      ##
    T)     a)AAAA n)   NN      j)  a)AAAA
                          j)   JJ
                           j)JJJ
-```
-#### eftifont (EFTIFONT)
-```
+----
+==== eftifont (EFTIFONT)
+[source]
+----
+
     __       __
  _ / _||| ()/ _| _   _ ||
 /o\| ] | ]||| ] /o\|/ \| ]
 \( L|  L| L|L|  \_/L_n|L|
 
-```
-#### Star Strips (STAR_STRIPS)
-```
+----
+==== Star Strips (STAR_STRIPS)
+[source]
+----
+
 ------------ ------------    ------    -----------       ------------ ------------ -----------  --------  -----------  ------------
 ************ ************   ********   ***********       ************ ************ ***********  ********  ************ ************
 ----         ------------  ----------  ----    ---       ----         ------------ ----    ---    ----    ---      --- ----
@@ -1194,9 +1544,11 @@ T)tttttt                      ##
 ------------     ----     ----    ---- ----   ----       ------------     ----     ----   ----  --------  ----         ------------
 ************     ****     ****    **** ****    ****      ************     ****     ****    **** ********  ****         ************
 
-```
-#### Crawford (CRAWFORD)
-```
+----
+==== Crawford (CRAWFORD)
+[source]
+----
+
     __  ____    ____  __    __  _____   ___   ____   ___
    /  ]|    \  /    T|  T__T  T|     | /   \ |    \ |   \
   /  / |  D  )Y  o  ||  |  |  ||   __jY     Y|  D  )|    \
@@ -1205,30 +1557,38 @@ T)tttttt                      ##
 \     ||  .  Y|  |  | \      / |  T   l     !|  .  Y|     |
  \____jl__j\_jl__j__j  \_/\_/  l__j    \___/ l__j\_jl_____j
 
-```
-#### Efti Chess (EFTI_CHESS)
-```
+----
+==== Efti Chess (EFTI_CHESS)
+[source]
+----
+
 #########
 ##[`'`']#           \`~'/
 ###|::|##           (o o)
 ###|::|##            \ / \
 #########             "
-```
-#### Horizontal Right (HORIZONTAL_RIGHT)
-```
+----
+==== Horizontal Right (HORIZONTAL_RIGHT)
+[source]
+----
+
  _______   _______   _______   _     _   _     _   _______   _______         _   ______    _______     _______   _     _   _______   _______         _
 \__   __\ /  ____ \ |_  ___ \ | |___| | | '.  | | /  ____ \ |__   _.'  _____\ | |_. _  '. / ______\   |_  ___ \ | |___| | / .---. \ \__   __\  _____\ |
  __| |__  | /___/ |  /  \_/ | |  ___  | | ._'.| | | /___/ |  _.' .'_  \______ |  _||_/  / | \          /  \_/ | |  ___  | \_'-. / |  __| |__  \______ |
 \_______\ \_______/ |_/'.__.' |_|   |_| |_| '.__| \_______/ |_______|       /_| |_____.'  |_/         |_/'.__.' |_|   |_|   '.| \_/ \_______\       /_|
 
 
-```
-#### Benjamin (BENJAMIN)
-```
+----
+==== Benjamin (BENJAMIN)
+[source]
+----
+
 |3[-|\|.]/-\|\/|||\|
-```
-#### defleppard (DEFLEPPARD)
-```
+----
+==== defleppard (DEFLEPPARD)
+[source]
+----
+
   ;                        ,                                                                   ;
   ED.                      Et                                                                  ED.
   E#Wi                 ,;  E#t                     ,;                                          E#Wi
@@ -1245,22 +1605,28 @@ T)tttttt                      ##
   E##D.               tt   E#t :W##########Wt     tt E#t       E#t    ;##D.    L##, DWi   ,KK: E##D.
   E#t                      ;#t :,,,,,,,,,,,,,.                        ,,,      .,,             E#t
   L:                        :;                                                                 L:
-```
-#### Double Shorts (DOUBLE_SHORTS)
-```
+----
+==== Double Shorts (DOUBLE_SHORTS)
+[source]
+----
+
 _____  _____  __ __ ____  __    _____      __ __  __  _____  _____ _____   __
 ||  ) ((   )) || || ||=)  ||    ||==      ((  ||==|| ((   )) ||_//  ||    ((
 ||_//  \\_//  \\_// ||_)) ||__| ||___    \_)) ||  ||  \\_//  || \\  ||   \_))
-```
-#### amc3liv1 (AMCTHREELIVONE)
-```
+----
+==== amc3liv1 (AMCTHREELIVONE)
+[source]
+----
+
 .:;S;:. .:;S;:.         .:;.;:.      :.         .:;S;.        .
 S  S     )      S     S S  S  S       S .:;s;:'      :: .:;s;::
 `:;S;:' `:;S;:' `:;S;:' `     ' `:;S;:'         `:;S;'  `     '
 
-```
-#### Patorjk-HeX (PATORJK_HEX)
-```
+----
+==== Patorjk-HeX (PATORJK_HEX)
+[source]
+----
+
         ______                                                                                                              -                               _____
   _____|\     \     _____       ________    ________         ____     ___________               _____    ______   _______           __     __          _____\    \ _____       _____
  /     / |     |  /      |_    /        \  /        \    ____\_  \__  \          \             |\    \_ |\     \  \      \         /  \   /  \        /    / |    |\    \     /    /
@@ -1273,9 +1639,11 @@ S  S     )      S     S S  S  S       S .:;s;:'      :: .:;s;::
   \ |     |     | |     | |     |         \ |   |     | \_____\   | / |     | | |     ||\_____\      | /|     | / |    | |   |    | |       | |    || |    |____/|  |    |   |    |
    \|_____|      \|_____|\|_____|          \|___|      \ |    |___|/  |_____|/ \|_____|| |     |_____|/ |_____|/  |____|/    |____|/         \|____| \|____|   | |  |____|   |____|
                                                         \|____|                         \|_____|                                                           |___|/
-```
-#### Peaks (PEAKS)
-```
+----
+==== Peaks (PEAKS)
+[source]
+----
+
 /^^^^^^^                      /^^
 /^^    /^^                    /^^
 /^^    /^^   /^^       /^^    /^^  /^^ /^^^^
@@ -1284,9 +1652,11 @@ S  S     )      S     S S  S  S       S .:;s;:'      :: .:;s;::
 /^^       /^        /^^   /^^ /^^ /^^     /^^
 /^^         /^^^^     /^^ /^^^/^^  /^^/^^ /^^
 
-```
-#### 3-D (THREE_D)
-```
+----
+==== 3-D (THREE_D)
+[source]
+----
+
   ****        *******
  */// *      /**////**
 /    /*      /**    /**
@@ -1295,9 +1665,11 @@ S  S     )      S     S S  S  S       S .:;s;:'      :: .:;s;::
  *   /*      /**    **
 / ****       /*******
  ////        ///////
-```
-#### Fire Font-k (FIRE_FONT_K)
-```
+----
+==== Fire Font-k (FIRE_FONT_K)
+[source]
+----
+
  (                     (
  )\ )                  )\ )                )         )
 (()/(  (   (      (   (()/(             ( /(      ( /(
@@ -1307,9 +1679,11 @@ S  S     )      S     S S  S  S       S .:;s;:'      :: .:;s;::
 | __|  | || '_|/ -_)  | __|/ _ \| ' \))|  _|     | / /
 |_|    |_||_|  \___|  |_|  \___/|_||_|  \__|     |_\_\
 
-```
-#### Swamp Land (SWAMP_LAND)
-```
+----
+==== Swamp Land (SWAMP_LAND)
+[source]
+----
+
  ______   __ __ __   ________   ___ __ __   ______     __       ________   ___   __    ______
 /_____/\ /_//_//_/\ /_______/\ /__//_//_/\ /_____/\   /_/\     /_______/\ /__/\ /__/\ /_____/\
 \::::_\/_\:\\:\\:\ \\::: _  \ \\::\| \| \ \\:::_ \ \  \:\ \    \::: _  \ \\::\_\\  \ \\:::_ \ \
@@ -1318,9 +1692,11 @@ S  S     )      S     S S  S  S       S .:;s;:'      :: .:;s;::
     /____\:\\:\\:\\:\ \\:.\ \  \ \\. \  \  \ \\ \ \      \:\/___/\\:.\ \  \ \\. \`-\  \ \\:\/.:| |
     \_____\/ \_______\/ \__\/\__\/ \__\/ \__\/ \_\/       \_____\/ \__\/\__\/ \__\/ \__\/ \____/_/
 
-```
-#### Georgia11 (GEORGIAONEONE)
-```
+----
+==== Georgia11 (GEORGIAONEONE)
+[source]
+----
+
 
                                                   ,,
   .g8"""bgd                                       db
@@ -1332,18 +1708,22 @@ MM.    `7MMF'8M"""""" 8M     M8 MM     WmmmP"     MM   ,pm9MM    MM    MM
   `"bmmmdPY   `Mbmmd'  `Ybmd9'.JMML.   YMMMMMb  .JMML.`Moo9^Yo..JMML..JMML.
                                       6'     dP
                                       Ybmmmd'
-```
-#### Ivrit (IVRIT)
-```
+----
+==== Ivrit (IVRIT)
+[source]
+----
+
   _   _            ___
  | |_(_)_ ____   _|_ _|
  | __| | '__\ \ / /| |
  | |_| | |   \ V / | |
   \__|_|_|    \_/ |___|
 
-```
-#### s-relief (S_RELIEF)
-```
+----
+==== s-relief (S_RELIEF)
+[source]
+----
+
 ______________        _______________        _______________        ________________        __/\\\\\\____        _______        ________________        ________/\\\\\_
  ______________        _______________        _______________        ________________        _\////\\\____        _______        ________________        ______/\\\///__
   ______________        _______________        _______________        ________________        ____\/\\\____        __/\\\_        ________________        _____/\\\______
@@ -1353,9 +1733,11 @@ ______________        _______________        _______________        ____________
       _\////////\\\_        _______________        _\/\\\_________        _\//\\///////___        ____\/\\\____        _\/\\\_        _\//\\///////___        ____\/\\\______
        __/\\\\\\\\\\_        _______________        _\/\\\_________        __\//\\\\\\\\\\_        __/\\\\\\\\\_        _\/\\\_        __\//\\\\\\\\\\_        ____\/\\\______
         _\//////////__        _______________        _\///__________        ___\//////////__        _\/////////__        _\///__        ___\//////////__        ____\///_______
-```
-#### Slant Relief (SLANT_RELIEF)
-```
+----
+==== Slant Relief (SLANT_RELIEF)
+[source]
+----
+
 _____/\\\\\\\\\\\___        __/\\\\\\____        ________________        _______________        _______________         ___________         ____/\\\\\\\\\_____        ________________        __/\\\\\\____        _______        ________________        ________/\\\\\_
  ___/\\\/////////\\\_        _\////\\\____        ________________        _______________        _______________         ___________         __/\\\///////\\\___        ________________        _\////\\\____        _______        ________________        ______/\\\///__
   __\//\\\______\///__        ____\/\\\____        ________________        _______________        _____/\\\______         ___________         _\/\\\_____\/\\\___        ________________        ____\/\\\____        __/\\\_        ________________        _____/\\\______
@@ -1365,9 +1747,11 @@ _____/\\\\\\\\\\\___        __/\\\\\\____        ________________        _______
       __/\\\______\//\\\__        ____\/\\\____        __/\\\/////\\\__        _\/\\\___\/\\\_        ____\/\\\_/\\__         ___________         _\/\\\_____\//\\\__        _\//\\///////___        ____\/\\\____        _\/\\\_        _\//\\///////___        ____\/\\\______
        _\///\\\\\\\\\\\/___        __/\\\\\\\\\_        _\//\\\\\\\\/\\_        _\/\\\___\/\\\_        ____\//\\\\\___         ___________         _\/\\\______\//\\\_        __\//\\\\\\\\\\_        __/\\\\\\\\\_        _\/\\\_        __\//\\\\\\\\\\_        ____\/\\\______
         ___\///////////_____        _\/////////__        __\////////\//__        _\///____\///__        _____\/////____         ___________         _\///________\///__        ___\//////////__        _\/////////__        _\///__        ___\//////////__        ____\///_______
-```
-#### Pebbles (PEBBLES)
-```
+----
+==== Pebbles (PEBBLES)
+[source]
+----
+
 OooOOo.         o     o     o
 O     `O       O     O     O
 o      O       O     O     o
@@ -1378,9 +1762,11 @@ O        O     o   O o   O o  O         O
 o'       `OoO' `OoO' `OoO' Oo `OoO' `OoO'
 
 
-```
-#### Barbwire (BARBWIRE)
-```
+----
+==== Barbwire (BARBWIRE)
+[source]
+----
+
 ><< ><<                    ><<
 ><    ><<                  ><<                   ><
 ><     ><<   ><<    >< ><<<><<      ><<     ><<<   >< ><<<   ><<
@@ -1389,16 +1775,20 @@ o'       `OoO' `OoO' `OoO' Oo `OoO' `OoO'
 ><      ><><<   ><<  ><<   ><<   ><< >< >< ><><<><< ><<   ><
 ><<<< ><<   ><< ><<<><<<   ><< ><<  ><<<    ><<<><<><<<     ><<<<
 
-```
-#### Test1 (TESTONE)
-```
+----
+==== Test1 (TESTONE)
+[source]
+----
+
  _________  __________ __________ _________
 /__     __\/   /_____//_________//__     __\
 `%%|___|%%'\___\%%%%%'`%%%%%%%%%/`%%|___|%%'
     `B'     `BBBBBBBB'`BBBBBBBB'     `B'
-```
-#### Banner3 (BANNERTHREE)
-```
+----
+==== Banner3 (BANNERTHREE)
+[source]
+----
+
 ########     ###    ##    ## ##    ## ######## ########   #######
 ##     ##   ## ##   ###   ## ###   ## ##       ##     ## ##     ##
 ##     ##  ##   ##  ####  ## ####  ## ##       ##     ##        ##
@@ -1406,18 +1796,22 @@ o'       `OoO' `OoO' `OoO' Oo `OoO' `OoO'
 ##     ## ######### ##  #### ##  #### ##       ##   ##          ##
 ##     ## ##     ## ##   ### ##   ### ##       ##    ##  ##     ##
 ########  ##     ## ##    ## ##    ## ######## ##     ##  #######
-```
-#### Diet Cola (DIET_COLA)
-```
+----
+==== Diet Cola (DIET_COLA)
+[source]
+----
+
    .-.                           .-._   .-._.  .
   (_) )-.       .-.        /   ..' (_)`-'     /
      /   \      `-' .-.---/---  |      .-._. / .-.
     /     \    /  ./.-'_ /      |    _(   ) / (  |
  .-/.      )_.(__.(__.' /       `.    )`-'_/_.-`-'-'
 (_/  `----'                       `--'
-```
-#### Ghoulish (GHOULISH)
-```
+----
+==== Ghoulish (GHOULISH)
+[source]
+----
+
    )\.-.        .'(     .-./(       .-.   .')      .'(    )\.--.       .'(
  ,' ,-,_)   ,') \  )  ,'     )  ,'  /  ) ( /       \  )  (   ._.'  ,') \  )
 (  .   __  (  '-' (  (  .-, (  (  ) | (   ))       ) (    `-.`.   (  '-' (
@@ -1425,9 +1819,11 @@ o'       `OoO' `OoO' `OoO' Oo `OoO' `OoO'
 (  ,   (   (  ,  ) \ (  ,   (  (  ,   (  (       )  ) \ (  '.)  ) (  ,  ) \
  )/'._.'    )/    )/  )/ ._.'   )/ ._.'   )/,__.'    )/  '._,_.'   )/    )/
 
-```
-#### Stellar (STELLAR)
-```
+----
+==== Stellar (STELLAR)
+[source]
+----
+
   `.. ..    `..             `.. `..
 `..    `..  `..             `.. `..
  `..      `.`. `.   `..     `.. `..   `..    `. `...
@@ -1436,18 +1832,22 @@ o'       `OoO' `OoO' `OoO' Oo `OoO' `OoO'
 `..    `..  `..  `.         `.. `..`..   `..  `..
   `.. ..     `..   `....   `...`...  `.. `...`...
 
-```
-#### USA Flag (USA_FLAG)
-```
+----
+==== USA Flag (USA_FLAG)
+[source]
+----
+
  :::  === :::===  :::====       :::===== :::      :::====  :::=====
  :::  === :::     :::  ===      :::      :::      :::  === :::
  ===  ===  =====  ========      ======   ===      ======== === =====
  ===  ===     === ===  ===      ===      ===      ===  === ===   ===
   ======  ======  ===  ===      ===      ======== ===  ===  =======
 
-```
-#### amcun1 (AMCUNONE)
-```
+----
+==== amcun1 (AMCUNONE)
+[source]
+----
+
                                                   ,'''''',
                                                   ',,';  ;
 ,'',,''', ,'',,'',,'', ,'',,'', ,',  ,', ,'',,'',     ;  ;
@@ -1456,9 +1856,11 @@ o'       `OoO' `OoO' `OoO' Oo `OoO' `OoO'
 ;  ;',  ; ;  ; ; ; ; ; ;  ;,'', ; ',,' ; ;  ; ; ;     ;  ;
 ',,' ',,' ',,' ',' ',' ',,'',,' ',,'',,' ',,' ','     ',,'
 
-```
-#### Cricket (CRICKET)
-```
+----
+==== Cricket (CRICKET)
+[source]
+----
+
   _______      __      __          __
  |   _   .----|__.----|  |--.-----|  |_
  |.  1___|   _|  |  __|    <|  -__|   _|
@@ -1467,9 +1869,11 @@ o'       `OoO' `OoO' `OoO' Oo `OoO' `OoO'
  |::.. . |
  `-------'
 
-```
-#### ICL-1900 (ICL_ONENINEZEROZERO)
-```
+----
+==== ICL-1900 (ICL_ONENINEZEROZERO)
+[source]
+----
+
 ICL-1900
 **
   **
@@ -1483,23 +1887,29 @@ ICL-1900
 
 
 *    *
-```
-#### Shadow (SHADOW)
-```
+----
+==== Shadow (SHADOW)
+[source]
+----
+
    ___|  |               |
  \___ \  __ \   _` |  _` |  _ \\ \  \   /
        | | | | (   | (   | (   |\ \  \ /
  _____/ _| |_|\__,_|\__,_|\___/  \_/\_/
 
-```
-#### Mike (MIKE)
-```
+----
+==== Mike (MIKE)
+[source]
+----
+
          |/  _
  ||\ _|  |  |/
 
-```
-#### Computer (COMPUTER)
-```
+----
+==== Computer (COMPUTER)
+[source]
+----
+
 8""""8
 8    " eeeee eeeeeee eeeee e   e eeeee eeee eeeee
 8e     8  88 8  8  8 8   8 8   8   8   8    8   8
@@ -1507,16 +1917,20 @@ ICL-1900
 88   e 8   8 88 8  8 88    88  8   88  88   88   8
 88eee8 8eee8 88 8  8 88    88ee8   88  88ee 88   8
 
-```
-#### Linux (LINUX)
-```
+----
+==== Linux (LINUX)
+[source]
+----
+
 .-.   .-..-..-..-..-..-..-.
 | |__ | || .` || || | >  <
 `----'`-'`-'`-'`----''-'`-`
 
-```
-#### Nancyj-Improved (NANCYJ_IMPROVED)
-```
+----
+==== Nancyj-Improved (NANCYJ_IMPROVED)
+[source]
+----
+
 888888ba                                      oo          dP                                                               dP
 88    `8b                                                 88                                                               88
 88     88 .d8888b. 88d888b. .d8888b. dP    dP dP          88 88d8b.d8b. 88d888b. 88d888b. .d8888b. dP   .dP .d8888b. .d888b88
@@ -1525,9 +1939,11 @@ ICL-1900
 dP     dP `88888P8 dP    dP `88888P' `8888P88 88          dP dP  dP  dP 88Y888P' dP       `88888P' 8888P'   `88888P' `88888P8
                                           .88 88                        88
                                       d8888P  dP                        dP
-```
-#### Marquee (MARQUEE)
-```
+----
+==== Marquee (MARQUEE)
+[source]
+----
+
 .::       .::
 .: .::   .:::
 .:: .:: . .::   .::    .: .:::  .::   .::  .::   .::       .::
@@ -1536,18 +1952,22 @@ dP     dP `88888P8 dP    dP `88888P' `8888P88 88          dP dP  dP  dP 88Y888P'
 .::       .::.::   .::  .::    .::.:: .::  .::.:        .:
 .::       .::  .:: .:::.:::       .::   .::.::  .::::     .::::
                                   .:::
-```
-#### slscript (SLSCRIPT)
-```
+----
+==== slscript (SLSCRIPT)
+[source]
+----
+
        _
       //                 _/_
  _   // _   _. __  o _   /
 /_)_</_/_)_(__/ (_<_/_)_<__
                    /
                   '
-```
-#### Stronger Than All (STRONGER_THAN_ALL)
-```
+----
+==== Stronger Than All (STRONGER_THAN_ALL)
+[source]
+----
+
 ._____________._.______  ._______  .______  ._____  ._______.______       _____._.___.__  .______  .______       .______  .___    .___    
 |    ___/\__ _:|: __   \ : .___  \ :      \ :_ ___\ : .____/: __   \      \__ _:|:   |  \ :      \ :      \      :      \ |   |   |   |   
 |___    \  |  :||  \____|| :   |  ||       ||   |___| : _/\ |  \____|       |  :||   :   ||   .   ||       |     |   .   ||   |   |   |   
@@ -1557,14 +1977,18 @@ dP     dP `88888P8 dP    dP `88888P' `8888P88 88          dP dP  dP  dP 88Y888P'
                             :                :   :/                                                                                       
                                                  :                                                             
 
-```
-#### twopoint (TWOPOINT)
-```
+----
+==== twopoint (TWOPOINT)
+[source]
+----
+
 _|_     _ |) _ o._ _|_
  | \/\/(_)| (_)|| | |
-```
-#### Merlin1 (MERLINONE)
-```
+----
+==== Merlin1 (MERLINONE)
+[source]
+----
+
  ___      ___   _______   _______   ___        __    _____  ___    ____
 |"  \    /"  | /"     "| /"      \ |"  |      |" \  (\"   \|"  \  /  " \
  \   \  //   |(: ______)|:        |||  |      ||  | |.\\   \    |/__|| |
@@ -1573,25 +1997,31 @@ _|_     _ |) _ o._ _|_
 |.  \    /:  |(:      "||:  __   \ ( \_|:  \  /\  |\|    \    \ | /" \_|\
 |___|\__/|___| \_______)|__|  \___) \_______)(__\_|_)\___|\____\)(_______)
 
-```
-#### Flipped (FLIPPED)
-```
+----
+==== Flipped (FLIPPED)
+[source]
+----
+
  ____              ____  ____  ____  ____
 |_   | ____  ____ |_   ||_   ||    || __ |
   || ||  __||____|  || |  || |||_| || |/ |
    |_||_|           \__/  \__/|_||_|\___/
-```
-#### AMC Slider (AMC_SLIDER)
-```
+----
+==== AMC Slider (AMC_SLIDER)
+[source]
+----
+
                                        ______                                                   ____
       .'.             .'. .`.        .~      ~.                    ..'''' |        | |``````.  |            |`````````,
     .''```.         .'   `   `.     |                           .''       |        | |       | |______      |'''|'''''
   .'       `.     .'           `.   |                        ..'          |        | |       | |            |    `.
 .'           `. .'               `.  `.______.'        ....''             |_______ | |......'  |___________ |      `.
 
-```
-#### 5lineoblique (FIVELINEOBLIQUE)
-```
+----
+==== 5lineoblique (FIVELINEOBLIQUE)
+[source]
+----
+
 
 
       ____
@@ -1599,16 +2029,20 @@ _|_     _ |) _ o._ _|_
    //__       //     / /     //   ) )   //___) )   //   ) )   //   ) )   //     / /     //   ) )   //   / /   //___) )
        ) )   //     / /     //   / /   //         //   / /   //   / /   //     / /     ((___/ /   //   / /   //
  ((___/ /   //     / /     //   / /   ((____     ((___/ /   ((___/ /   //     / /          ( (   ((___( (   ((____
-```
-#### eftiwater (EFTIWATER)
-```
+----
+==== eftiwater (EFTIWATER)
+[source]
+----
+
     __ _  o             _
  __ )L`)L _ __ _ _ ___  )L __ __
 (('(( (( (( \(((/'((_( (( (('(|
 
-```
-#### Rounded (ROUNDED)
-```
+----
+==== Rounded (ROUNDED)
+[source]
+----
+
  ______                            _             _
 (_____ \                          | |           | |
  _____) )  ___   _   _  ____    __| | _____   __| |
@@ -1616,24 +2050,30 @@ _|_     _ |) _ o._ _|_
 | |  \ \ | |_| || |_| || | | |( (_| || ____|( (_| |
 |_|   |_| \___/ |____/ |_| |_| \____||_____) \____|
 
-```
-#### eftirobot (EFTIROBOT)
-```
+----
+==== eftirobot (EFTIROBOT)
+[source]
+----
+
        _  _   _           _         _
      ,'_)( ) (_)         ( )       ( )
  ___ | | | |  _  __  ___ | |_  ___ | |
 ( o_)( _)( _)( )( _)( o )( o \( o )( _)
  \(  /_\ /_\ /_\/_\  \_/ /___/ \_/ /_\
 
-```
-#### eftipiti (EFTIPITI)
-```
+----
+==== eftipiti (EFTIPITI)
+[source]
+----
+
 
 eftipiti
 
-```
-#### Tinker-Toy (TINKER_TOY)
-```
+----
+==== Tinker-Toy (TINKER_TOY)
+[source]
+----
+
 o-O-o        o                o-O-o
   |   o      | /                |
   |     o-o  OO   o-o o-o o-o   |   o-o o  o
@@ -1641,9 +2081,11 @@ o-O-o        o                o-O-o
   o   | o  o o  o o-o o         o   o-o o--O
                                            |
                                         o--o
-```
-#### amctubes (AMCTUBES)
-```
+----
+==== amctubes (AMCTUBES)
+[source]
+----
+
 d s.   d s   sb   sSSs. sss sssss d       b d ss.  d sss     sss.
 S  ~O  S  S S S  S          S     S       S S    b S       d
 S   `b S   S  S S           S     S       S S    P S       Y
@@ -1652,9 +2094,11 @@ S    O S      S S           S     S       S S    b S            b
 S    O S      S  S          S      S     S  S    P S            P
 P    P P      P   "sss'     P       "sss"   P `SS  P sSSss ` ss'
 
-```
-#### swampland (SWAMPLAND)
-```
+----
+==== swampland (SWAMPLAND)
+[source]
+----
+
  ______   __ __ __   ________   ___ __ __   ______   __       ________   ___   __    ______
 /_____/\ /_//_//_/\ /_______/\ /__//_//_/\ /_____/\ /_/\     /_______/\ /__/\ /__/\ /_____/\
 \::::_\/_\:\\:\\:\ \\::: _  \ \\::\| \| \ \\:::_ \ \\:\ \    \::: _  \ \\::\_\\  \ \\:::_ \ \
@@ -1663,16 +2107,20 @@ P    P P      P   "sss'     P       "sss"   P `SS  P sSSss ` ss'
     /____\:\\:\\:\\:\ \\:.\ \  \ \\. \  \  \ \\ \ \    \:\/___/\\:.\ \  \ \\. \`-\  \ \\:\/.:| |
     \_____\/ \_______\/ \__\/\__\/ \__\/ \__\/ \_\/     \_____\/ \__\/\__\/ \__\/ \__\/ \____/_/
 
-```
-#### smshadow (SMSHADOW)
-```
+----
+==== smshadow (SMSHADOW)
+[source]
+----
+
                 |              |
  (_-<  ` \ (_-<   \   _` |  _` |  _ \\ \  \ /
  ___/_|_|_|___/_| _|\__,_|\__,_|\___/ \_/\_/
 
-```
-#### Colossal (COLOSSAL)
-```
+----
+==== Colossal (COLOSSAL)
+[source]
+----
+
  .d8888b.           888                                     888
 d88P  Y88b          888                                     888
 888    888          888                                     888
@@ -1684,16 +2132,20 @@ Y88b  d88P Y88..88P 888 Y88..88P      X88      X88 888  888 888
 
 
 
-```
-#### JS Bracket Letters (JS_BRACKET_LETTERS)
-```
+----
+==== JS Bracket Letters (JS_BRACKET_LETTERS)
+[source]
+----
+
    .-. .----.   .----. .----.   .--.   .---. .-. .-..----..---.    .-.   .----..---.  .---. .----..----.  .----.
 .-.| |{ {__     | {}  }| {}  } / {} \ /  ___}| |/ / | {_ {_   _}   | |   | {_ {_   _}{_   _}| {_  | {}  }{ {__
 | {} |.-._} }   | {}  }| .-. \/  /\  \\     }| |\ \ | {__  | |     | `--.| {__  | |    | |  | {__ | .-. \.-._} }
 `----'`----'    `----' `-' `-'`-'  `-' `---' `-' `-'`----' `-'     `----'`----' `-'    `-'  `----'`-' `-'`----'
-```
-#### 3d (THREED)
-```
+----
+==== 3d (THREED)
+[source]
+----
+
   ████       ██
  █░░░ █     ░██
 ░    ░█     ░██
@@ -1702,17 +2154,21 @@ Y88b  d88P Y88..88P 888 Y88..88P      X88      X88 888  888 888
  █   ░█░██  ░██
 ░ ████ ░░██████
  ░░░░   ░░░░░░
-```
-#### Small Script (SMALL_SCRIPT)
-```
+----
+==== Small Script (SMALL_SCRIPT)
+[source]
+----
+
 
   ()          _,  |\ |\     ()  _   ,_  o    _|_
   /\ /|/|/|  / |  |/ |/     /\ /   /  | | |/\_|
  /(_) | | |_/\/|_/|_/|_/   /(_)\__/   |/|/|_/ |_/
                                          (|
-```
-#### ANSI Shadow (ANSI_SHADOW)
-```
+----
+==== ANSI Shadow (ANSI_SHADOW)
+[source]
+----
+
  █████╗ ███╗   ██╗███████╗██╗    ███████╗██╗  ██╗ █████╗ ██████╗  ██████╗ ██╗    ██╗
 ██╔══██╗████╗  ██║██╔════╝██║    ██╔════╝██║  ██║██╔══██╗██╔══██╗██╔═══██╗██║    ██║
 ███████║██╔██╗ ██║███████╗██║    ███████╗███████║███████║██║  ██║██║   ██║██║ █╗ ██║
@@ -1720,16 +2176,20 @@ Y88b  d88P Y88..88P 888 Y88..88P      X88      X88 888  888 888
 ██║  ██║██║ ╚████║███████║██║    ███████║██║  ██║██║  ██║██████╔╝╚██████╔╝╚███╔███╔╝
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚══╝╚══╝
 
-```
-#### amc3line (AMCTHREELINE)
-```
+----
+==== amc3line (AMCTHREELINE)
+[source]
+----
+
 .-. .  . .-. -. .   .-. . . .-.
 |-| |\/| |   -| |    |  |\| |-
 ` ' '  ` `-' -' `-' `-' ' ` `-'
 
-```
-#### Star Wars (STAR_WARS)
-```
+----
+==== Star Wars (STAR_WARS)
+[source]
+----
+
      _______..___________.     ___      .______         ____    __    ____      ___      .______           _______.
     /       ||           |    /   \     |   _  \        \   \  /  \  /   /     /   \     |   _  \         /       |
    |   (----``---|  |----`   /  ^  \    |  |_)  |        \   \/    \/   /     /  ^  \    |  |_)  |       |   (----`
@@ -1737,27 +2197,33 @@ Y88b  d88P Y88..88P 888 Y88..88P      X88      X88 888  888 888
 .----)   |       |  |      /  _____  \  |  |\  \----.      \    /\    /     /  _____  \  |  |\  \----..----)   |
 |_______/        |__|     /__/     \__\ | _| `._____|       \__/  \__/     /__/     \__\ | _| `._____||_______/
 
-```
-#### Goofy (GOOFY)
-```
+----
+==== Goofy (GOOFY)
+[source]
+----
+
 __       _____     _____     ___        ___   __   __
   )  ____)    )   (     )   (   \    ___) (  (  )  )
  /  /  __    /     \   /     \   |  (__    \  \/  /
 (  (  (  \  (       ) (       )  |   __)    \    /
  \  \__)  )  \     /   \     /   |  (        )  /
 __)      (____)   (_____)   (___/    \______/  (_____
-```
-#### Speed (SPEED)
-```
+----
+==== Speed (SPEED)
+[source]
+----
+
 ________                     _________
 __  ___/________ _____ _____ ______  /
 _____ \ ___  __ \_  _ \_  _ \_  __  /
 ____/ / __  /_/ //  __//  __// /_/ /
 /____/  _  .___/ \___/ \___/ \__,_/
         /_/
-```
-#### Larry 3D (LARRY_THREED)
-```
+----
+==== Larry 3D (LARRY_THREED)
+[source]
+----
+
  __                                                         __      ____
 /\ \                                                      /'__`\   /\  _`\
 \ \ \         __      _ __   _ __   __  __               /\_\L\ \  \ \ \/\ \
@@ -1767,9 +2233,11 @@ ____/ / __  /_/ //  __//  __// /_/ /
     \/___/  \/__/\/_/  \/_/   \/_/   `/___/> \              \/___/     \/___/
                                         /\___/
                                         \/__/
-```
-#### Small Poison (SMALL_POISON)
-```
+----
+==== Small Poison (SMALL_POISON)
+[source]
+----
+
 
  @@@@@@ @@@@@@@@@@   @@@@@@  @@@      @@@         @@@@@@@   @@@@@@  @@@  @@@@@@  @@@@@@  @@@  @@@
 !@@     @@! @@! @@! @@!  @@@ @@!      @@!         @@!  @@@ @@!  @@@ @@! !@@     @@!  @@@ @@!@!@@@
@@ -1777,16 +2245,20 @@ ____/ / __  /_/ //  __//  __// /_/ /
     !:! !!:     !!: !!:  !!! !!:      !!:         !!:      !!:  !!! !!:     !:! !!:  !!! !!:  !!!
 ::.: :   :      :    :   : : : ::.: : : ::.: :     :        : :. :  :   ::.: :   : :. :  ::    :
 
-```
-#### AMC 3 Liv1 (AMC_THREE_LIVONE)
-```
+----
+==== AMC 3 Liv1 (AMC_THREE_LIVONE)
+[source]
+----
+
 .:;S;:. .:;S;:.              .:;.;:.           :.         .:;S;.        .
 S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
 `:;S;:' `:;S;:' `:;S;:'      `     '      `:;S;:'         `:;S;'  `     '
 
-```
-#### Alpha (ALPHA)
-```
+----
+==== Alpha (ALPHA)
+[source]
+----
+
           _____                    _____            _____                    _____                    _____
          /\    \                  /\    \          /\    \                  /\    \                  /\    \
         /::\    \                /::\____\        /::\    \                /::\____\                /::\    \
@@ -1809,9 +2281,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
         \::/    /                \::/    /                                 \::/    /                \::/    /
          \/____/                  \/____/                                   \/____/                  \/____/
 
-```
-#### Merlin2 (MERLINTWO)
-```
+----
+==== Merlin2 (MERLINTWO)
+[source]
+----
+
    _               _        _         _          _      _          _
  _/\\___ _____  __/\\___  _/\\___   _/\\_      _/\\_  _/\\___   __//\
 (_      v    ))(_  ____))(_   _  ))(_  _))    (____))(_      ))//    \
@@ -1821,16 +2295,20 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
      \//  \//   \//           \//     \//        \//      \//     \//
 
 
-```
-#### Graceful (GRACEFUL)
-```
+----
+==== Graceful (GRACEFUL)
+[source]
+----
+
   ___  ____   __    ___  ____  ____  _  _  __
  / __)(  _ \ / _\  / __)(  __)(  __)/ )( \(  )
 ( (_ \ )   //    \( (__  ) _)  ) _) ) \/ (/ (_/\
  \___/(__\_)\_/\_/ \___)(____)(__)  \____/\____/
-```
-#### Def Leppard (DEF_LEPPARD)
-```
+----
+==== Def Leppard (DEF_LEPPARD)
+[source]
+----
+
   ;                        ,                                                                              ;
   ED.                      Et                                                                             ED.
   E#Wi                 ,;  E#t                                ,;                                          E#Wi
@@ -1847,9 +2325,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
   E##D.               tt   E#t            :W##########Wt     tt E#t       E#t    ;##D.    L##, DWi   ,KK: E##D.
   E#t                      ;#t            :,,,,,,,,,,,,,.                        ,,,      .,,             E#t
   L:                        :;                                                                            L:
-```
-#### Fender (FENDER)
-```
+----
+==== Fender (FENDER)
+[source]
+----
+
 '||''''|                     ||`
  ||  .                       ||
  ||''|   .|''|, `||''|,  .|''||  .|''|, '||''|
@@ -1857,9 +2337,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
 .||.     `|...  .||  ||. `|..||. `|...  .||.
 
 
-```
-#### amcthin (AMCTHIN)
-```
+----
+==== amcthin (AMCTHIN)
+[source]
+----
+
 .-..-..-. .-.-. .-.-. .-..--. .-..-..-. .-.   .-. .-. .-..-.  .-.
 | | ~ | | | |~.-.~| | | | ~~   ~ | | ~  | | _ | | | | | | ~.-.| |
 | |.-.| | | |  ~  | | | |        | |    | |`-'| | | | | |   ~ | |
@@ -1867,9 +2349,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
 | |   | | | |     | | | | __     | |    | |   | | | | | |     | |
 `-'   `-' `-'     `-' `-'`--'    `-'    `-'   `-' `-' `-'     `-'
 
-```
-#### Alligator2 (ALLIGATORTWO)
-```
+----
+==== Alligator2 (ALLIGATORTWO)
+[source]
+----
+
     :::     :::        :::        :::::::::::  ::::::::      :::     :::::::::::  ::::::::  :::::::::   ::::::::
   :+: :+:   :+:        :+:            :+:     :+:    :+:   :+: :+:       :+:     :+:    :+: :+:    :+: :+:    :+:
  +:+   +:+  +:+        +:+            +:+     +:+         +:+   +:+      +:+     +:+    +:+ +:+    +:+       +:+
@@ -1877,9 +2361,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
 +#+     +#+ +#+        +#+            +#+     +#+   +#+# +#+     +#+     +#+     +#+    +#+ +#+    +#+   +#+
 #+#     #+# #+#        #+#            #+#     #+#    #+# #+#     #+#     #+#     #+#    #+# #+#    #+#  #+#
 ###     ### ########## ########## ###########  ########  ###     ###     ###      ########  ###    ### ##########
-```
-#### Banner4 (BANNERFOUR)
-```
+----
+==== Banner4 (BANNERFOUR)
+[source]
+----
+
 .########.....###....##....##.##....##.########.########..##.......
 .##.....##...##.##...###...##.###...##.##.......##.....##.##....##.
 .##.....##..##...##..####..##.####..##.##.......##.....##.##....##.
@@ -1887,9 +2373,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
 .##.....##.#########.##..####.##..####.##.......##...##...#########
 .##.....##.##.....##.##...###.##...###.##.......##....##........##.
 .########..##.....##.##....##.##....##.########.##.....##.......##.
-```
-#### NT Greek (NT_GREEK)
-```
+----
+==== NT Greek (NT_GREEK)
+[source]
+----
+
 
  _   _  _____   _____
 | \ | |(_   _) |  ___)
@@ -1899,9 +2387,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
 |_| \_|  |_|   |_|    |  __/ \___)\___)|_|\_\
                       | |
                       |_|
-```
-#### Nancyj-Underlined (NANCYJ_UNDERLINED)
-```
+----
+==== Nancyj-Underlined (NANCYJ_UNDERLINED)
+[source]
+----
+
 888888ba                                      oo          dP     dP                dP                   dP oo                         dP
 88    `8b                                                 88     88                88                   88                            88
 88     88 .d8888b. 88d888b. .d8888b. dP    dP dP          88     88 88d888b. .d888b88 .d8888b. 88d888b. 88 dP 88d888b. .d8888b. .d888b88
@@ -1910,9 +2400,11 @@ S  S     )      S     S      S  S  S            S .:;s;:'      :: .:;s;::
 dP     dP `88888P8 dP    dP `88888P' `8888P88 88          `Y88888P' dP    dP `88888P8 `88888P' dP       dP dP dP    dP `88888P' `88888P8
 oooooooooooooooooooooooooooooooooooooo~~~~.88~88~oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
                                       d8888P  dP
-```
-#### Fun Faces (FUN_FACES)
-```
+----
+==== Fun Faces (FUN_FACES)
+[source]
+----
+
     wWw  wWw  wWw\\\  ///      wWw           c  c  wWw   oo_
     (O)_ (O)  (O)((O)(O))      (O)_   /)     (OO)  (O)_ /  _)-<
     / __)/ )  ( \ | \ ||       / __)(o)(O) ,'.--.) / __)\__ `.
@@ -1920,18 +2412,22 @@ oooooooooooooooooooooooooooooooooooooo~~~~.88~88~ooooooooooooooooooooooooooooooo
   (  _) | \____/ ||| \ |     (  _)  |(__)|| \___ (  _)     _| |
   / /   '. `--' .`||  ||     / /    /,-. |'.    ) \ \_  ,-'   |
   )/      `-..-' (_/  \_)    )/    -'   ''  `-.'   \__)(_..--'
-```
-#### Slant (SLANT)
-```
+----
+==== Slant (SLANT)
+[source]
+----
+
    _____ __            __
   / ___// /___ _____  / /_
   \__ \/ / __ `/ __ \/ __/
  ___/ / / /_/ / / / / /_
 /____/_/\__,_/_/ /_/\__/
 
-```
-#### Jazmine (JAZMINE)
-```
+----
+==== Jazmine (JAZMINE)
+[source]
+----
+
 
   o                        o
   8
@@ -1942,18 +2438,22 @@ oP' `YooP8 `Yooo' 8  8  8  8 8   8 `Yooo'
 ...::.....::.....:..:..:..:....::..:.....:
 ::::::::::::::::::::::::::::::::::::::::::
 ::::::::::::::::::::::::::::::::::::::::::
-```
-#### sblood (SBLOOD)
-```
+----
+==== sblood (SBLOOD)
+[source]
+----
+
   @@@@@@ @@@@@@@  @@@       @@@@@@   @@@@@@  @@@@@@@
  !@@     @@!  @@@ @@!      @@!  @@@ @@!  @@@ @@!  @@@
   !@@!!  @!@!@!@  @!!      @!@  !@! @!@  !@! @!@  !@!
      !:! !!:  !!! !!:      !!:  !!! !!:  !!! !!:  !!!
  ::.: :  :: : ::  : ::.: :  : :. :   : :. :  :: :  :
 
-```
-#### Twisted (TWISTED)
-```
+----
+==== Twisted (TWISTED)
+[source]
+----
+
   _______   _      _   __  ______   _______     _____  _____
 /\_______)\/_/\  /\_\ /\_\/ ____/\/\_______)\ /\_____\/\ __/\
 \(___  __\/) ) )( ( ( \/_/) ) __\/\(___  __\/( (_____/) )  \ \
@@ -1962,9 +2462,11 @@ oP' `YooP8 `Yooo' 8  8  8  8 8   8 `Yooo'
   \ \ \    )_) /\ (_(( (_()____) )  \ \ \    ( (_____\) )__/ /
   /_/_/    \_\/  \/_/ \/_/\____\/   /_/_/     \/_____/\/___\/
 
-```
-#### Tengwar (TENGWAR)
-```
+----
+==== Tengwar (TENGWAR)
+[source]
+----
+
              .dP'                                               db
            dP'                                               db    db
                                  "Ybaaaaaaaaad8'
@@ -1975,30 +2477,38 @@ oP' `YooP8 `Yooo' 8  8  8  8 8   8 `Yooo'
  88                                          88  .88888888b.           dP'  b
  88                                          88                        Y.  ,P
 .8P                                          Y8.                        `""'
-```
-#### eftiwall (EFTIWALL)
-```
+----
+==== eftiwall (EFTIWALL)
+[source]
+----
+
      |"|            _                        .      .    #  #  #  #      |             _     _       _     _
     _|_|_         _|_|_         ()_()      .  .:::.      #  #..#  #      |.===.      o' \,=./ `o   o' \,=./ `o
     (o o)         (o o)         (o o)        :(o o):  .  #  #O #) #      {}o o{}        (o o)         (o o)
 ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--`o'--Ooo-ooO--(_)--Ooo-o#O-#(_#--#oo-ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--(_)--Ooo-
-```
-#### Rotated (ROTATED)
-```
+----
+==== Rotated (ROTATED)
+[source]
+----
+
 ____   _    _,_ _     _,_  _    _
 _/(_) (_)  ( '  _|)  ( '  (|)  (_)_
 
-```
-#### Small Caps (SMALL_CAPS)
-```
+----
+==== Small Caps (SMALL_CAPS)
+[source]
+----
+
   ___   _   _    _    _      _        ___    _    ____    ___
  (  _( ) \_/ (  )_\  ) |    ) |      / _(   )_\  )  _)\  (  _(
  _) \  |  _  | /( )\ | (__  | (__    ))_   /( )\ | '__/  _) \
 )____) )_( )_()_/ \_()____( )____(   \__( )_/ \_()_(    )____)
 
-```
-#### Varsity (VARSITY)
-```
+----
+==== Varsity (VARSITY)
+[source]
+----
+
  ____   ____                      _   _
 |_  _| |_  _|                    (_) / |_
   \ \   / /,--.   _ .--.  .--.   __ `| |-' _   __
@@ -2006,35 +2516,43 @@ _/(_) (_)  ( '  _|)  ( '  (|)  (_)_
     \ ' / // | |, | |     `'.'.  | | | |,  \ '/ /
      \_/  \'-;__/[___]   [\__) )[___]\__/[\_:  /
                                           \__.'
-```
-#### Ticks (TICKS)
-```
+----
+==== Ticks (TICKS)
+[source]
+----
+
 _/\/\/\/\/\/\__/\/\________________/\/\___________________
 _____/\/\________________/\/\/\/\__/\/\__/\/\____/\/\/\/\_
 _____/\/\______/\/\____/\/\________/\/\/\/\____/\/\/\/\___
 _____/\/\______/\/\____/\/\________/\/\/\/\__________/\/\_
 _____/\/\______/\/\/\____/\/\/\/\__/\/\__/\/\__/\/\/\/\___
 __________________________________________________________
-```
-#### Santa Clara (SANTA_CLARA)
-```
+----
+==== Santa Clara (SANTA_CLARA)
+[source]
+----
+
   __,                        ,___ _
  (               _/_        /   ///
   `.  __,  _ _   /  __,    /    // __,  _   __,
 (___)(_/(_/ / /_(__(_/(_  (___/(/_(_/(_/ (_(_/(_
 
 
-```
-#### eftichess (EFTICHESS)
-```
+----
+==== eftichess (EFTICHESS)
+[source]
+----
+
 ##################
 ##[`'`']###\`~'/##
 ###|::|####(o o)##
 ###|::|#####\ / \#
 #############"####
-```
-#### Nancyj-Fancy (NANCYJ_FANCY)
-```
+----
+==== Nancyj-Fancy (NANCYJ_FANCY)
+[source]
+----
+
 M"""""""`YM                                     oo          MM""""""""`M
 M  mmmm.  M                                                 MM  mmmmmmmM
 M  MMMMM  M .d8888b. 88d888b. .d8888b. dP    dP dP          M'      MMMM .d8888b. 88d888b. .d8888b. dP    dP
@@ -2043,25 +2561,31 @@ M  MMMMM  M 88.  .88 88    88 88.  ... 88.  .88 88          MM  MMMMMMMM 88.  .8
 M  MMMMM  M `88888P8 dP    dP `88888P' `8888P88 88          MM  MMMMMMMM `88888P8 dP    dP `88888P' `8888P88
 MMMMMMMMMMM                                 .88 88          MMMMMMMMMMMM                                 .88
                                         d8888P  dP                                                   d8888P
-```
-#### dietcola (DIETCOLA)
-```
+----
+==== dietcola (DIETCOLA)
+[source]
+----
+
           .                              .
          /    .-.        /              /
     .-../     `-' .-.---/---.-.  .-._. / .-.
    (   /     /  ./.-'_ /   (    (   ) / (  |
     `-'-.._.(__.(__.' /     `---'`-'_/_.-`-'-'
 
-```
-#### Efti Wall (EFTI_WALL)
-```
+----
+==== Efti Wall (EFTI_WALL)
+[source]
+----
+
                     _                        .      .                       |             _     _       _     _
      +++          _|_|_         ()_()      .  .:::.             )|(         |.===.      o' \,=./ `o   o' \,=./ `o
     (o o)         (o o)         (o o)        :(o o):  .        (o o)        {}o o{}        (o o)         (o o)
 ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--`o'--Ooo-ooO--(_)--Ooo----ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--(_)--Ooo-
-```
-#### Alligator (ALLIGATOR)
-```
+----
+==== Alligator (ALLIGATOR)
+[source]
+----
+
           :::        :::        :::        :::::::::::       ::::::::           :::    :::::::::::       ::::::::       :::::::::
        :+: :+:      :+:        :+:            :+:          :+:    :+:        :+: :+:      :+:          :+:    :+:      :+:    :+:
      +:+   +:+     +:+        +:+            +:+          +:+              +:+   +:+     +:+          +:+    +:+      +:+    +:+
@@ -2069,9 +2593,11 @@ ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--`o'--Ooo-ooO--(_)--Ooo----ooO--(_)--Ooo-ooO--(_
   +#+     +#+    +#+        +#+            +#+          +#+   +#+#      +#+     +#+    +#+          +#+    +#+      +#+    +#+
  #+#     #+#    #+#        #+#            #+#          #+#    #+#      #+#     #+#    #+#          #+#    #+#      #+#    #+#
 ###     ###    ########## ########## ###########       ########       ###     ###    ###           ########       ###    ###
-```
-#### calgphy2 (CALGPHYTWO)
-```
+----
+==== calgphy2 (CALGPHYTWO)
+[source]
+----
+
 
                    ###                              /
                     ###                           #/
@@ -2092,9 +2618,11 @@ ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--`o'--Ooo-ooO--(_)--Ooo----ooO--(_)--Ooo-ooO--(_
                             ####   ### ##               /     #####   ### e
                           /######  /#  ##              /    /#######  /#  r
                          /     ###/     ##            /    /      ###/    2
-```
-#### Blocks (BLOCKS)
-```
+----
+==== Blocks (BLOCKS)
+[source]
+----
+
  .----------------.  .----------------.  .----------------.  .----------------.  .----------------.  .----------------.
 | .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |
 | |   ______     | || |   _____      | || |     ____     | || |     ______   | || |  ___  ____   | || |    _______   | |
@@ -2106,18 +2634,22 @@ ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--`o'--Ooo-ooO--(_)--Ooo----ooO--(_)--Ooo-ooO--(_
 | |              | || |              | || |              | || |              | || |              | || |              | |
 | '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |
  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'
-```
-#### Thin (THIN)
-```
+----
+==== Thin (THIN)
+[source]
+----
+
 
 --.--|    o
   |  |---..,---.
   |  |   |||   |
   `  `   '``   '
 
-```
-#### Univers (UNIVERS)
-```
+----
+==== Univers (UNIVERS)
+[source]
+----
+
 
 88        88               88
 88        88               ""
@@ -2129,9 +2661,11 @@ Y8a.    .a8P  88       88  88    `8b,d8'    "8b,   ,aa  88          aa    ]8I
  `"Y8888Y"'   88       88  88      "8"       `"Ybbd8"'  88          `"YbbdP"'
 
 
-```
-#### Broadway (BROADWAY)
-```
+----
+==== Broadway (BROADWAY)
+[source]
+----
+
 
 8 888888888o   8 888888888o.       ,o888888o.              .8.          8 888888888o.      `8.`888b                 ,8'          .8.          `8.`8888.      ,8'
 8 8888    `88. 8 8888    `88.   . 8888     `88.           .888.         8 8888    `^888.    `8.`888b               ,8'          .888.          `8.`8888.    ,8'
@@ -2143,9 +2677,11 @@ Y8a.    .a8P  88       88  88    `8b,d8'    "8b,   ,aa  88          aa    ]8I
 8 8888      88 8 8888 `8b.     `8 8888       ,8P    .8'   `8. `88888.   8 8888        ,88'        `8.`888`8.`88'          .8'   `8. `88888.          8 8888
 8 8888    ,88' 8 8888   `8b.    ` 8888     ,88'    .888888888. `88888.  8 8888    ,o88P'           `8.`8' `8,`'          .888888888. `88888.         8 8888
 8 888888888P   8 8888     `88.     `8888888P'     .8'       `8. `88888. 8 888888888P'               `8.`   `8'          .8'       `8. `88888.        8 8888
-```
-#### Stacey (STACEY)
-```
+----
+==== Stacey (STACEY)
+[source]
+----
+
 ___________________________________________
 7     77      77  _  77     77     77  7  7
 |  ___!!__  __!|  _  ||  ___!|  ___!|  !  |
@@ -2153,16 +2689,20 @@ ___________________________________________
 7     |  |  |  |  |  ||     7|     7 7   7
 !_____!  !__!  !__!__!!_____!!_____! !___!
 
-```
-#### fourtops (FOURTOPS)
-```
+----
+==== fourtops (FOURTOPS)
+[source]
+----
+
  /~\            |
 -|-/~\|   ||/~\~|~/~\|~~\(~
  | \_/ \_/||    | \_/|__/_)
                      |
-```
-#### Jerusalem (JERUSALEM)
-```
+----
+==== Jerusalem (JERUSALEM)
+[source]
+----
+
 
   __   __. ______  _______  _   _   _  _______  ___  ______  ______      _
   \ \ / / |____  ||____  .|| | | | | ||____   ||_  ||____  ||____  |    | |
@@ -2170,18 +2710,22 @@ ___________________________________________
  ___\  \   | | |_|     | | | |/ /_/ /      | |   | |     | | | | |_|| |_| |
 |______|   | |         | | |_______/       |_|   |_|     |_| | |     \___/
            |_|         |_|                                   |_|
-```
-#### Ogre (OGRE)
-```
+----
+==== Ogre (OGRE)
+[source]
+----
+
    ___
   /___\  __ _  _ __   ___
  //  // / _` || '__| / _ \
 / \_// | (_| || |   |  __/
 \___/   \__, ||_|    \___|
         |___/
-```
-#### Big Money-sw (BIG_MONEY_SW)
-```
+----
+==== Big Money-sw (BIG_MONEY_SW)
+[source]
+----
+
  _______   __                  __       __
 /       \ /  |                /  \     /  |
 $$$$$$$  |$$/   ______        $$  \   /$$ |  ______   _______    ______   __    __           _______  __   __   __
@@ -2194,9 +2738,11 @@ $$$$$$$/  $$/  $$$$$$$ |      $$/      $$/  $$$$$$/  $$/   $$/  $$$$$$$/  $$$$$$
               /  \__$$ |                                                 /  \__$$ |
               $$    $$/                                                  $$    $$/
                $$$$$$/                                                    $$$$$$/
-```
-#### Chiseled (CHISELED)
-```
+----
+==== Chiseled (CHISELED)
+[source]
+----
+
    _,.----.  ,--.-,,-,--, .=-.-.  ,-,--.     ,----.                ,----.
  .' .' -   \/==/  /|=|  |/==/_ /,-.'-  _\ ,-.--` , \   _.-.     ,-.--` , \  _,..---._
 /==/  ,  ,-'|==|_ ||=|, |==|, |/==/_ ,_.'|==|-  _.-` .-,.'|    |==|-  _.-`/==/,   -  \
@@ -2206,9 +2752,11 @@ $$$$$$$/  $$/  $$$$$$$ |      $$/      $$/  $$$$$$/  $$/   $$/  $$$$$$$/  $$$$$$
 \==\.       /==|   .-. ,\==|- |/==/\/ _ |==|_  ,`-._|==|- `-._|==|_  ,`-._|==|  '='   /
  `-.`.___.-'/==/, //=/  /==/. /\==\ - , /==/ ,     //==/ - , ,/==/ ,     /|==|-,   _`/
             `--`-' `-`--`--`-`  `--`---'`--`-----`` `--`-----'`--`-----`` `-.`.____.'
-```
-#### Gradient (GRADIENT)
-```
+----
+==== Gradient (GRADIENT)
+[source]
+----
+
 .eeeeee..eeeeeee...eeeeee..eeeeeee..eee.eeeeee.eeeeeee..eeeeeeeee.
 @@@@@@@@:@@@@@@@@:@@@@@@@@:@@@@@@@@:@@@:@@@@@@:@@@@@@@@:@@@@@@@@@:
 %%%------%%%--%%%-%%%--%%%-%%%--%%%-%%%-%%%----%%%--%%%----%%%----
@@ -2218,17 +2766,21 @@ $$$$$$$/  $$/  $$$$$$$ |      $$/      $$/  $$$$$$/  $$/   $$/  $$$$$$$/  $$$$$$
 ::::::::#:::##:::#:::##:::#::::::::#:::#::::::#:::##:::####:::####
 @......@@...@@...@...@@...@.......@@...@......@...@@...@@@@...@@@@
 
-```
-#### Tsalagi (TSALAGI)
-```
+----
+==== Tsalagi (TSALAGI)
+[source]
+----
+
     __    __    __    ___     __     ___   ___
  \  /    /  \  |  \    |     |  \     |_-_  |
   \/   __\___  |   \   |     |   \ `\/\    .|()
 _ /        \   |   /   |  .  |   /  |  |  ()|'
 \/      \__/   |__/    `__'  |__/    \/    _|_
-```
-#### ANSI Regular (ANSI_REGULAR)
-```
+----
+==== ANSI Regular (ANSI_REGULAR)
+[source]
+----
+
  █████  ███    ██ ███████ ██     ██████  ███████  ██████  ██    ██ ██       █████  ██████ 
 ██   ██ ████   ██ ██      ██     ██   ██ ██      ██       ██    ██ ██      ██   ██ ██   ██ 
 ███████ ██ ██  ██ ███████ ██     ██████  █████   ██   ███ ██    ██ ██      ███████ ██████  
@@ -2236,9 +2788,11 @@ _ /        \   |   /   |  .  |   /  |  |  ()|'
 ██   ██ ██   ████ ███████ ██     ██   ██ ███████  ██████   ██████  ███████ ██   ██ ██   ██ 
                                                                                            
 
-```
-#### DOS Rebel (DOS_REBEL)
-```
+----
+==== DOS Rebel (DOS_REBEL)
+[source]
+----
+
  ██████████      ███████     █████████     ███████████            █████              ████
 ░░███░░░░███   ███░░░░░███  ███░░░░░███   ░░███░░░░░███          ░░███              ░░███
  ░███   ░░███ ███     ░░███░███    ░░░     ░███    ░███   ██████  ░███████   ██████  ░███
@@ -2250,25 +2804,31 @@ _ /        \   |   /   |  .  |   /  |  |  ()|'
 
 
 
-```
-#### Graffiti (GRAFFITI)
-```
+----
+==== Graffiti (GRAFFITI)
+[source]
+----
+
   ________                   _____   _____ .__   __   .__
  /  _____/ _______ _____   _/ ____\_/ ____\|__|_/  |_ |__|
 /   \  ___ \_  __ \\__  \  \   __\ \   __\ |  |\   __\|  |
 \    \_\  \ |  | \/ / __ \_ |  |    |  |   |  | |  |  |  |
  \______  / |__|   (____  / |__|    |__|   |__| |__|  |__|
         \/              \/
-```
-#### DANC4 (DANCFOUR)
-```
+----
+==== DANC4 (DANCFOUR)
+[source]
+----
+
 '\   /`  \O/#   O/# \O    O
   \ /     Y_   <|    |#   |\
    Y     /  |  / \  / \  / \
    O\# ./   |__| |__\ /__\ /_
-```
-#### 3D Diagonal (THREED_DIAGONAL)
-```
+----
+==== 3D Diagonal (THREED_DIAGONAL)
+[source]
+----
+
 
   .--,-``-.
  /   /     '.      ,---,                ,---,                                                                      ,--,
@@ -2285,9 +2845,11 @@ _ /        \   |   /   |  .  |   /  |  |  ()|'
  \   \     .'  |   ,.'              |   ,.'      |  ,   /|  ,     .-./|   :    :          '---'      |  ,     .-./---`-'
   `--`-,,-'    '---'                '---'         ---`-'  `--`---'     \   \  /                       `--`---'
                                                                         `--`-'
-```
-#### Bolger (BOLGER)
-```
+----
+==== Bolger (BOLGER)
+[source]
+----
+
 888~~\           888       /
 888   |  e88~-_  888 e88~88e  e88~~8e  888-~\
 888 _/  d888   i 888 888 888 d888  88b 888
@@ -2295,9 +2857,11 @@ _ /        \   |   /   |  .  |   /  |  |  ()|'
 888   | Y888   ' 888  /      Y888    , 888
 888__/   "88_-~  888 Cb       "88___/  888
                       Y8""8D
-```
-#### 3D-ASCII (THREED_ASCII)
-```
+----
+==== 3D-ASCII (THREED_ASCII)
+[source]
+----
+
  ________  ________                 ________  ________  ________  ___  ___
 |\_____  \|\   ___ \               |\   __  \|\   ____\|\   ____\|\  \|\  \
 \|____|\ /\ \  \_|\ \  ____________\ \  \|\  \ \  \___|\ \  \___|\ \  \ \  \
@@ -2308,15 +2872,19 @@ _ /        \   |   /   |  .  |   /  |  |  ()|'
                                                 \|_________|
 
 
-```
-#### Efti Piti (EFTI_PITI)
-```
+----
+==== Efti Piti (EFTI_PITI)
+[source]
+----
+
  __      _
 [|-fti  ||)iti
  `-     L|
-```
-#### Catwalk (CATWALK)
-```
+----
+==== Catwalk (CATWALK)
+[source]
+----
+
     _//               _//                         _//_//
  _//   _//            _//                         _//_//
 _//          _//    _/_/ _/_//     _///   _//     _//_//  _//
@@ -2325,18 +2893,22 @@ _//       _//   _//   _//   _// _/  _//_//   _//  _//_/_//
  _//   _//_//   _//   _//   _/ _/ _/_//_//   _//  _//_// _//
    _////    _// _///   _// _///    _///  _// _///_///_//  _//
 
-```
-#### ticksslant (TICKSSLANT)
-```
+----
+==== ticksslant (TICKSSLANT)
+[source]
+----
+
      ___/\/\______/\/\________________/\/\________________________________/\/\______________________________/\/\_____
     _/\/\/\/\/\____________/\/\/\/\__/\/\__/\/\____/\/\/\/\____/\/\/\/\__/\/\____/\/\/\______/\/\/\/\____/\/\/\/\/\_
    ___/\/\______/\/\____/\/\________/\/\/\/\____/\/\/\/\____/\/\/\/\____/\/\________/\/\____/\/\__/\/\____/\/\_____
   ___/\/\______/\/\____/\/\________/\/\/\/\__________/\/\________/\/\__/\/\____/\/\/\/\____/\/\__/\/\____/\/\_____
  ___/\/\/\____/\/\/\____/\/\/\/\__/\/\__/\/\__/\/\/\/\____/\/\/\/\____/\/\/\__/\/\/\/\/\__/\/\__/\/\____/\/\/\___
 ________________________________________________________________________________________________________________
-```
-#### AMC Thin (AMC_THIN)
-```
+----
+==== AMC Thin (AMC_THIN)
+[source]
+----
+
 .-..-..-. .-.-. .-.-. .-..--.     .-..-..-. .-.   .-. .-. .-..-.  .-.
 | | ~ | | | |~.-.~| | | | ~~       ~ | | ~  | | _ | | | | | | ~.-.| |
 | |.-.| | | |  ~  | | | |            | |    | |`-'| | | | | |   ~ | |
@@ -2344,9 +2916,11 @@ ________________________________________________________________________________
 | |   | | | |     | | | | __         | |    | |   | | | | | |     | |
 `-'   `-' `-'     `-' `-'`--'        `-'    `-'   `-' `-' `-'     `-'
 
-```
-#### Keyboard (KEYBOARD)
-```
+----
+==== Keyboard (KEYBOARD)
+[source]
+----
+
 
  _______  _______  _______  _______  _______  _______  _______  _______
 |\     /||\     /||\     /||\     /||\     /||\     /||\     /||\     /|
@@ -2356,9 +2930,11 @@ ________________________________________________________________________________
 | +---+ || +---+ || +---+ || +---+ || +---+ || +---+ || +---+ || +---+ |
 |/_____\||/_____\||/_____\||/_____\||/_____\||/_____\||/_____\||/_____\|
 
-```
-#### dotmatrix (DOTMATRIX)
-```
+----
+==== dotmatrix (DOTMATRIX)
+[source]
+----
+
                 _                   _                                        _                         _
                (_)                 (_)                                      (_)                       (_)
        _  _  _ (_)    _  _  _    _ (_) _  _    _  _   _  _     _  _  _    _ (_) _  _  _       _  _  _  _     _         _
@@ -2369,9 +2945,11 @@ ________________________________________________________________________________
       (_)(_)(_)(_)   (_)(_)(_)       (_)(_)  (_)   (_)   (_)  (_)(_)(_)  (_)  (_)(_)   (_)         (_)(_)(_)(_)       (_)
 
 
-```
-#### Electronic (ELECTRONIC)
-```
+----
+==== Electronic (ELECTRONIC)
+[source]
+----
+
  ▄▄▄▄▄▄▄▄▄▄▄  ▄            ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄        ▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄
 ▐░░░░░░░░░░░▌▐░▌          ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░▌      ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
 ▐░█▀▀▀▀▀▀▀▀▀ ▐░▌          ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀  ▀▀▀▀█░█▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░▌░▌     ▐░▌ ▀▀▀▀█░█▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀
@@ -2384,17 +2962,21 @@ ________________________________________________________________________________
 ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌     ▐░▌     ▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░▌      ▐░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀       ▀       ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀        ▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀
 
-```
-#### Dr Pepper (DR_PEPPER)
-```
+----
+==== Dr Pepper (DR_PEPPER)
+[source]
+----
+
  ___        ___
 | . \ _ _  | . \ ___  ___  ___  ___  _ _
 | | || '_> |  _// ._>| . \| . \/ ._>| '_>
 |___/|_|   |_|  \___.|  _/|  _/\___.|_|
                      |_|  |_|
-```
-#### Diamond (DIAMOND)
-```
+----
+==== Diamond (DIAMOND)
+[source]
+----
+
 /\\\\\                                                      /\\
 /\\   /\\  /\                                               /\\
 /\\    /\\      /\\    /\\\ /\\ /\\    /\\    /\\ /\\       /\\
@@ -2403,9 +2985,11 @@ ________________________________________________________________________________
 /\\   /\\ /\\/\\   /\\  /\\  /\  /\\ /\\  /\\  /\\  /\\/\   /\\
 /\\\\\    /\\  /\\ /\\\/\\\  /\  /\\   /\\    /\\\  /\\ /\\ /\\
 
-```
-#### Banner3-D (BANNERTHREE_D)
-```
+----
+==== Banner3-D (BANNERTHREE_D)
+[source]
+----
+
 '########:::::'###::::'##::: ##:'##::: ##:'########:'########:::'#######:::::::::::'########::
  ##.... ##:::'## ##::: ###:: ##: ###:: ##: ##.....:: ##.... ##:'##.... ##:::::::::: ##.... ##:
  ##:::: ##::'##:. ##:: ####: ##: ####: ##: ##::::::: ##:::: ##:..::::: ##:::::::::: ##:::: ##:
@@ -2414,9 +2998,11 @@ ________________________________________________________________________________
  ##:::: ##: ##.... ##: ##:. ###: ##:. ###: ##::::::: ##::. ##::'##:::: ##:::::::::: ##:::: ##:
  ########:: ##:::: ##: ##::. ##: ##::. ##: ########: ##:::. ##:. #######::::::::::: ########::
 ........:::..:::::..::..::::..::..::::..::........::..:::::..:::.......::::::::::::........:::
-```
-#### Big Money-se (BIG_MONEY_SE)
-```
+----
+==== Big Money-se (BIG_MONEY_SE)
+[source]
+----
+
  _______   __                  __       __
 |       \ |  \                |  \     /  \
 | $$$$$$$\ \$$  ______        | $$\   /  $$  ______   _______    ______   __    __           _______   ______
@@ -2429,18 +3015,22 @@ ________________________________________________________________________________
               |  \__| $$                                                 |  \__| $$
                \$$    $$                                                  \$$    $$
                 \$$$$$$                                                    \$$$$$$
-```
-#### Bell (BELL)
-```
+----
+==== Bell (BELL)
+[source]
+----
+
  ____           .    .
  /   \    ___   |    |
  |,_-<  .'   `  |    |
  |    ` |----'  |    |
  `----' `.___, /\__ /\__
 
-```
-#### Lean (LEAN)
-```
+----
+==== Lean (LEAN)
+[source]
+----
+
 
     _/
    _/          _/_/      _/_/_/  _/_/_/
@@ -2449,14 +3039,18 @@ ________________________________________________________________________________
 _/_/_/_/    _/_/_/    _/_/_/  _/    _/
 
 
-```
-#### Konto (KONTO)
-```
+----
+==== Konto (KONTO)
+[source]
+----
+
 I,� ,�`. I`.I ��T�� ,�`.
 I`. `..' I `I   I   `..'
-```
-#### Big (BIG)
-```
+----
+==== Big (BIG)
+[source]
+----
+
   ____  _
  |  _ \(_)
  | |_) |_  __ _
@@ -2465,9 +3059,11 @@ I`. `..' I `I   I   `..'
  |____/|_|\__, |
            __/ |
           |___/
-```
-#### NScript (NSCRIPT)
-```
+----
+==== NScript (NSCRIPT)
+[source]
+----
+
  ,ggg, ,ggggggg,        ,gg,
 dP""Y8,8P"""""Y8b      i8""8i                                            I8
 Yb, `8dP'     `88      `8,,8'                                            I8
@@ -2484,18 +3080,22 @@ Yb, `8dP'     `88      `8,,8'                                            I8
                                                            I8
                                                            I8
                                                            I8
-```
-#### Runyc (RUNYC)
-```
+----
+==== Runyc (RUNYC)
+[source]
+----
+
 |~\
 |  \
 |  /
 |_/  |\   |  |~\ |
 | \  | | `|  |_| |
 |  \ | |  |` ||| |\
-```
-#### Impossible (IMPOSSIBLE)
-```
+----
+==== Impossible (IMPOSSIBLE)
+[source]
+----
+
           _         _   _         _          _            _           _           _          _               _             _
          /\ \      /\_\/\_\ _    /\ \       /\ \         / /\        / /\        /\ \       / /\            _\ \          /\ \
          \ \ \    / / / / //\_\ /  \ \     /  \ \       / /  \      / /  \       \ \ \     / /  \          /\__ \        /  \ \
@@ -2508,45 +3108,57 @@ Yb, `8dP'     `88      `8,,8'                                            I8
 /\__\/_/___\\/_/    / / // / /      / / /____\/ / \ \/___/ /  \ \/___/ //\__\/_/___\/ / /__________\/_______/\__\// / /_______\
 \/_________/        \/_/ \/_/       \/_________/   \_____\/    \_____\/ \/_________/\/_____________/\_______\/    \/__________/
 
-```
-#### rowancap (ROWANCAP)
-```
+----
+==== rowancap (ROWANCAP)
+[source]
+----
+
     dMMMMb    .aMMMb    dMP dMP dMP     .aMMMb     dMMMMb    .aMMMb     .aMMMb     dMMMMb
    dMP.dMP   dMP"dMP   dMP dMP dMP     dMP"dMP    dMP dMP   dMP"VMP    dMP"dMP    dMP.dMP
   dMMMMK"   dMP dMP   dMP dMP dMP     dMMMMMP    dMP dMP   dMP        dMMMMMP    dMMMMP"
  dMP"AMF   dMP.aMP   dMP.dMP.dMP     dMP dMP    dMP dMP   dMP.aMP    dMP dMP    dMP
 dMP dMP    VMMMP"    VMMMPVMMP"     dMP dMP    dMP dMP    VMMMP"    dMP dMP    dMP
 
-```
-#### Bigfig (BIGFIG)
-```
+----
+==== Bigfig (BIGFIG)
+[source]
+----
+
  _     _   _    _
 |_) o (_|_|_ o (_|
 |_) | __| |  | __|
-```
-#### Standard (STANDARD)
-```
+----
+==== Standard (STANDARD)
+[source]
+----
+
   ____  _                  _               _
  / ___|| |_ __ _ _ __   __| | __ _ _ __ __| |
  \___ \| __/ _` | '_ \ / _` |/ _` | '__/ _` |
   ___) | || (_| | | | | (_| | (_| | | | (_| |
  |____/ \__\__,_|_| |_|\__,_|\__,_|_|  \__,_|
 
-```
-#### Hex (HEX)
-```
+----
+==== Hex (HEX)
+[source]
+----
+
 48 65 78
-```
-#### Thick (THICK)
-```
+----
+==== Thick (THICK)
+[source]
+----
+
 88888 8     w      8
   8   8d8b. w .d8b 8.dP
   8   8P Y8 8 8    88b
   8   8   8 8 `Y8P 8 Yb
 
-```
-#### Stop (STOP)
-```
+----
+==== Stop (STOP)
+[source]
+----
+
     _
    | |    _
     \ \  | |_    ___   ____
@@ -2554,36 +3166,44 @@ dMP dMP    VMMMP"    VMMMPVMMP"     dMP dMP    dMP dMP    VMMMP"    dMP dMP    d
  _____) )| |__ | |_| || | | |
 (______/  \___) \___/ | ||_/
                       |_|
-```
-#### S Blood (S_BLOOD)
-```
+----
+==== S Blood (S_BLOOD)
+[source]
+----
+
   @@@@@@      @@@@@@@  @@@       @@@@@@   @@@@@@  @@@@@@@
  !@@          @@!  @@@ @@!      @@!  @@@ @@!  @@@ @@!  @@@
   !@@!!       @!@!@!@  @!!      @!@  !@! @!@  !@! @!@  !@!
      !:!      !!:  !!! !!:      !!:  !!! !!:  !!! !!:  !!!
  ::.: :       :: : ::  : ::.: :  : :. :   : :. :  :: :  :
 
-```
-#### horizontalleft (HORIZONTALLEFT)
-```
+----
+==== horizontalleft (HORIZONTALLEFT)
+[source]
+----
+
  _______   _______   _______   _     _   _     _   _______   _______   _          ______   _______   _______   _______   _______   _
 \__   __\ /  ____ \ / ___  _| | |___| | | |  .` | /  ____ \ `._   __| | /_____  .`  _ ._| /______ \ /______ \ | ._ _. | |  _ ___| | /_____
  __| |__  | /___/ | | \_/  \  |  ___  | | |.`_. | | /___/ |  _`. `._  | ______/ \  \_||_        / |       / | | \ v / | | ||_\    | ______/
 \_______\ \_______/ `.__.`\_| |_|   |_| |__.` |_| \_______/ |_______| |_\        `._____|       \_|       \_| |_/   \_| |_/       |_\
 
 
-```
-#### LCD (LCD)
-```
+----
+==== LCD (LCD)
+[source]
+----
+
        ___   ___
 |     |       | |
 |     |       + |
 |     |       | |
  ---   ---   ---
 
-```
-#### AMC Razor (AMC_RAZOR)
-```
+----
+==== AMC Razor (AMC_RAZOR)
+[source]
+----
+
                                 ___           __               ___   ___                     __
   .'|=|`.     .'|\/|`.     .'|=|_.'      .'|=|  |   .'|=|`.    `._|=|   |   .'|=|`.     .'|=|  |
 .'  | |  `. .'  |  |  `. .'  |         .'  | |  | .'  | |  `.       |  .' .'  | |  `. .'  | |  |
@@ -2591,9 +3211,11 @@ dMP dMP    VMMMP"    VMMMPVMMP"     dMP dMP    dMP dMP    VMMMP"    dMP dMP    d
 |   | |   | |   |  |   | `.  |  ___    |   |  |`. |   | |   | .'  |  ___  `.  | |  .' |   |  |`.
 |___| |___| |___|  |___|   `.|=|_.'    |___|  |_| |___| |___| |___|=|_.'    `.|=|.'   |___|  |_|
 
-```
-#### ntgreek (NTGREEK)
-```
+----
+==== ntgreek (NTGREEK)
+[source]
+----
+
 
 
 
@@ -2603,33 +3225,41 @@ dMP dMP    VMMMP"    VMMMPVMMP"     dMP dMP    dMP dMP    VMMMP"    dMP dMP    d
 |__/    \_)  | |  |  __/ \___)\___)|_|\_\
              | |  | |
              |_|  |_|
-```
-#### Stampate (STAMPATE)
-```
+----
+==== Stampate (STAMPATE)
+[source]
+----
+
 .---. .                    .
 \___  |- ,-. ,-,-. ,-. ,-. |- ,-.
     \ |  ,-| | | | | | ,-| |  |-'
 `---' `' `-^ ' ' ' |-' `-^ `' `-'
                    |
                    '
-```
-#### smtengwar (SMTENGWAR)
-```
+----
+==== smtengwar (SMTENGWAR)
+[source]
+----
+
      _ _      ,'  _ _  _____     .',
 (~) |_)_) |~)  | | ) ) (_(_| |~)  |  \/
  /        |                | ~~~     (,
-```
-#### Cards (CARDS)
-```
+----
+==== Cards (CARDS)
+[source]
+----
+
 .------..------..------..------..------.
 |C.--. ||A.--. ||R.--. ||D.--. ||S.--. |
 | :/\: || (\/) || :(): || :/\: || :/\: |
 | :\/: || :\/: || ()() || (__) || :\/: |
 | '--'C|| '--'A|| '--'R|| '--'D|| '--'S|
 `------'`------'`------'`------'`------'
-```
-#### larry3d (LARRYTHREED)
-```
+----
+==== larry3d (LARRYTHREED)
+[source]
+----
+
  ___                                            __       __
 /\_ \                                         /'__`\    /\ \
 \//\ \       __      _ __   _ __   __  __    /\_\L\ \   \_\ \
@@ -2639,44 +3269,56 @@ dMP dMP    VMMMP"    VMMMPVMMP"     dMP dMP    dMP dMP    VMMMP"    dMP dMP    d
    \/____/ \/__/\/_/  \/_/   \/_/   `/___/> \   \/___/  \/__,_ /
                                        /\___/
                                        \/__/
-```
-#### ASCII New Roman (ASCII_NEW_ROMAN)
-```
+----
+==== ASCII New Roman (ASCII_NEW_ROMAN)
+[source]
+----
+
   ____,____,____,__, __,   _,  _,____,_   _,  ____, ____, __, _, ____,_,  _,
  (-/_|(-(__(-/  (-| (-|   (-|\ |(-|_,(-|  |  (-|__)(-/  \(-|\/| (-/_|(-|\ |
  _/  |,____)_\__,_|_,_|_,  _| \|,_|__,_|/\|,  _|  \,_\__/,_| _|,_/  |,_| \|,
 (     (    (    (   (     (     (    (       (     (     (     (     (
-```
-#### Morse2 (MORSETWO)
-```
+----
+==== Morse2 (MORSETWO)
+[source]
+----
+
 -- --- .-. ... . ..---
-```
-#### Serifcap (SERIFCAP)
-```
+----
+==== Serifcap (SERIFCAP)
+[source]
+----
+
  ___  ___  ___   __  ___   __   __   ___
 / __)(  _)(  ,) (  )(  _) / _) (  ) (  ,\
 \__ \ ) _) )  \  )(  ) _)( (_  /__\  ) _/
 (___/(___)(_)\_)(__)(_)   \__)(_)(_)(_)
-```
-#### Peaks Slant (PEAKS_SLANT)
-```
+----
+==== Peaks Slant (PEAKS_SLANT)
+[source]
+----
+
      _/\/\/\/\/\____________________________/\/\__________________________/\/\/\/\/\__/\/\______________________________/\/\_____
     _/\/\____/\/\____/\/\/\____/\/\/\______/\/\__/\/\____/\/\/\/\______/\/\__________/\/\____/\/\/\______/\/\/\/\____/\/\/\/\/\_
    _/\/\/\/\/\____/\/\/\/\/\______/\/\____/\/\/\/\____/\/\/\/\__________/\/\/\/\____/\/\________/\/\____/\/\__/\/\____/\/\_____
   _/\/\__________/\/\________/\/\/\/\____/\/\/\/\__________/\/\______________/\/\__/\/\____/\/\/\/\____/\/\__/\/\____/\/\_____
  _/\/\____________/\/\/\/\__/\/\/\/\/\__/\/\__/\/\__/\/\/\/\________/\/\/\/\/\____/\/\/\__/\/\/\/\/\__/\/\__/\/\____/\/\/\___
 ____________________________________________________________________________________________________________________________
-```
-#### Double (DOUBLE)
-```
+----
+==== Double (DOUBLE)
+[source]
+----
+
  ____   ___ __ ________    ____
  || \\ // \\|| |||| ))|   ||
  ||  )|(   ))| ||||=)||   ||==
  ||_// \\_//\\_//||_))|__|||___
 
-```
-#### Banner (BANNER)
-```
+----
+==== Banner (BANNER)
+[source]
+----
+
  ######
  #     #   ##   #    # #    # ###### #####
  #     #  #  #  ##   # ##   # #      #    #
@@ -2685,9 +3327,11 @@ ________________________________________________________________________________
  #     # #    # #   ## #   ## #      #   #
  ######  #    # #    # #    # ###### #    #
 
-```
-#### Block (BLOCK)
-```
+----
+==== Block (BLOCK)
+[source]
+----
+
 
  _|_|_|    _|                      _|
  _|    _|  _|    _|_|      _|_|_|  _|  _|
@@ -2696,9 +3340,11 @@ ________________________________________________________________________________
  _|_|_|    _|    _|_|      _|_|_|  _|    _|
 
 
-```
-#### Fire Font-s (FIRE_FONT_S)
-```
+----
+==== Fire Font-s (FIRE_FONT_S)
+[source]
+----
+
  (                  (
  )\ )               )\ )             )
 (()/( (  (     (   (()/(          ( /(
@@ -2708,18 +3354,22 @@ ________________________________________________________________________________
 | __| | | '_/ -_)  | __/ _ \ ' \))  _|  (_-<
 |_|   |_|_| \___|  |_| \___/_||_| \__|  /__/
 
-```
-#### Cursive (CURSIVE)
-```
+----
+==== Cursive (CURSIVE)
+[source]
+----
+
    __
   /  )
  /   . . __  _   o, __
 (__/(_/_/ (_/_)_<_\/</_
 
 
-```
-#### Reverse (REVERSE)
-```
+----
+==== Reverse (REVERSE)
+[source]
+----
+
 ======================================================
 =       ==============================================
 =  ====  =============================================
@@ -2731,30 +3381,38 @@ ________________________________________________________________________________
 =  ====  ==  =  ==== ====  =  ==  =======  =  ==  =  =
 =  ====  ===   ===== =====   ===  ========   ====   ==
 ======================================================
-```
-#### Cosmike (COSMIKE)
-```
+----
+==== Cosmike (COSMIKE)
+[source]
+----
+
   .,-:::::     ...      .::::::. .        :   ::: :::  .   .,::::::
 ,;;;'````'  .;;;;;;;.  ;;;`    ` ;;,.    ;;;  ;;; ;;; .;;,.;;;;''''
 [[[        ,[[     \[[,'[==/[[[[,[[[[, ,[[[[, [[[ [[[[[/'   [[cccc
 $$$        $$$,     $$$  '''    $$$$$$$$$"$$$ $$$_$$$$,     $$""""
 `88bo,__,o,"888,_ _,88P 88b    dP888 Y88" 888o888"888"88o,  888oo,__
   "YUMMMMMP" "YMMMMMP"   "YMmMY" MMM  M'  "MMMMMM MMM "MMP" """"YUMMM
-```
-#### Rot13 (ROTONETHREE)
-```
+----
+==== Rot13 (ROTONETHREE)
+[source]
+----
+
 Ebg13
-```
-#### Efti Font (EFTI_FONT)
-```
+----
+==== Efti Font (EFTI_FONT)
+[source]
+----
+
  ___  __        ___
 | __|/ _||| () | __| _   _ ||
 | _| | ] | ]|| | _| /o\|/ \| ]
 |___|L|  L| L| |_|  \_/L_n|L|
 
-```
-#### Puffy (PUFFY)
-```
+----
+==== Puffy (PUFFY)
+[source]
+----
+
  ___             ___    ___
 (  _`\         /'___) /'___)
 | |_) ) _   _ | (__  | (__   _   _
@@ -2763,30 +3421,38 @@ Ebg13
 (_)    `\___/'(_)    (_)    `\__, |
                             ( )_| |
                             `\___/'
-```
-#### 1Row (ONEROW)
-```
+----
+==== 1Row (ONEROW)
+[source]
+----
+
 '| /? () \/\/
 
-```
-#### Efti Robot (EFTI_ROBOT)
-```
+----
+==== Efti Robot (EFTI_ROBOT)
+[source]
+----
+
  ____   _  _   _    ___       _         _
 (  __),'_)( ) (_)  (   )     ( )       ( )
 | |_  | | | |  _   | O  |___ | |_  ___ | |
 (  _) ( _)( _)( )  ( _ (( o )( o \( o )( _)
 /____\/_\ /_\ /_\  /_\\_|\_/ /___/ \_/ /_\
 
-```
-#### Efti Water (EFTI_WATER)
-```
+----
+==== Efti Water (EFTI_WATER)
+[source]
+----
+
  ___ __ _  o    _ _ _       _
  )L  )L`)L _    ))`)`) ___  )L __ __
 ((_ (( (( ((   ((,(,' ((_( (( (('(|
 
-```
-#### funfaces (FUNFACES)
-```
+----
+==== funfaces (FUNFACES)
+[source]
+----
+
     wWw  wWw  wWw\\\  ///  wWw           c  c  wWw   oo_
     (O)_ (O)  (O)((O)(O))  (O)_   /)     (OO)  (O)_ /  _)-<
     / __)/ )  ( \ | \ ||   / __)(o)(O) ,'.--.) / __)\__ `.
@@ -2794,17 +3460,21 @@ Ebg13
   (  _) | \____/ ||| \ | (  _)  |(__)|| \___ (  _)     _| |
   / /   '. `--' .`||  || / /    /,-. |'.    ) \ \_  ,-'   |
   )/      `-..-' (_/  \_))/    -'   ''  `-.'   \__)(_..--'
-```
-#### Cygnet (CYGNET)
-```
+----
+==== Cygnet (CYGNET)
+[source]
+----
+
 
  .-             .
 (  . ..-..-..-,-|-
  `-'-|`-|' '`'- '-
    `-'`-'
-```
-#### Pawp (PAWP)
-```
+----
+==== Pawp (PAWP)
+[source]
+----
+
 
  _____
 (_____)
@@ -2814,9 +3484,11 @@ Ebg13
 (_)       (__)_) (__) (__) (____)
                            (_)
                            (_)
-```
-#### Georgi16 (GEORGIONESIX)
-```
+----
+==== Georgi16 (GEORGIONESIX)
+[source]
+----
+
 
 
    ____                                                   ,6P
@@ -2833,9 +3505,11 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
                                      6M    Yb
                                      YM.   d9
                                       YMMMM9
-```
-#### Katakana (KATAKANA)
-```
+----
+==== Katakana (KATAKANA)
+[source]
+----
+
   #    #   #             #     #                   #          ######   #
 ########## #   ###    #######  #   ###    ######   #   ###             #   ###
   #    #   ####        # #     ####            #   ####     ########## ####
@@ -2844,17 +3518,21 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
      #     #             #     #        ########## #             ##    #
    #        #######      #      #######             #######    ##       #######
 
-```
-#### Puzzle (PUZZLE)
-```
+----
+==== Puzzle (PUZZLE)
+[source]
+----
+
      _         _         _         _         _         _
    _( )__    _( )__    _( )__    _( )__    _( )__    _( )__
  _|     _| _|     _| _|     _| _|     _| _|     _| _|     _|
 (_ P _ (_ (_ U _ (_ (_ Z _ (_ (_ Z _ (_ (_ L _ (_ (_ E _ (_
   |_( )__|  |_( )__|  |_( )__|  |_( )__|  |_( )__|  |_( )__|
-```
-#### funface (FUNFACE)
-```
+----
+==== funface (FUNFACE)
+[source]
+----
+
           wWw  wWw\\\  ///               c  c
     wWw   (O)  (O)((O)(O))  wWw   /)     (OO)  wWw
     (O)_  / )  ( \ | \ ||   (O)_(o)(O) ,'.--.) (O)_
@@ -2862,9 +3540,11 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
   (  _)  | \____/ ||| \ | (  _) |(__)|| \___ (  _)
    )/    '. `--' .`||  ||  )/   /,-. |'.    ) `.__)
   (        `-..-' (_/  \_)(    -'   ''  `-.'
-```
-#### smisome1 (SMISOMEONE)
-```
+----
+==== smisome1 (SMISOMEONE)
+[source]
+----
+
     ___       ___       ___       ___       ___       ___       ___
    /\  \     /\__\     /\  \     /\  \     /\  \     /\__\     /\  \
   /::\  \   /::L_L_   _\:\  \   /::\  \   /::\  \   /::L_L_   /::\  \
@@ -2872,9 +3552,11 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
  \:\:\/__/ \/_/:/  / \::/\/__/ \:\:\/__/ \:\/:/  / \/_/:/  / \:\:\/  /
   \::/  /    /:/  /   \:\__\    \::/  /   \::/  /    /:/  /   \:\/  /
    \/__/     \/__/     \/__/     \/__/     \/__/     \/__/     \/__/
-```
-#### Gothic (GOTHIC)
-```
+----
+==== Gothic (GOTHIC)
+[source]
+----
+
     __ ,
   ,-| ~           ,  ,,
  ('||/__,        ||  ||     '
@@ -2884,23 +3566,29 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
   -____/  \\,/   \\, \\ |/ \\ \\,/
                        _/
 
-```
-#### Small Tengwar (SMALL_TENGWAR)
-```
+----
+==== Small Tengwar (SMALL_TENGWAR)
+[source]
+----
+
  _   _ _  .',           _  ,'  _ _  _____     .',
 ( ) |_)_)  |  --- ---  | )  | | ) ) (_(_| |~)  |  \/
  /            (_, (_,  |                | ~~~     (,
-```
-#### drpepper (DRPEPPER)
-```
+----
+==== drpepper (DRPEPPER)
+[source]
+----
+
    _
  _| | _ _  ___  ___  ___  ___  ___  _ _
 / . || '_>| . \/ ._>| . \| . \/ ._>| '_>
 \___||_|  |  _/\___.|  _/|  _/\___.|_|
           |_|       |_|  |_|
-```
-#### Epic (EPIC)
-```
+----
+==== Epic (EPIC)
+[source]
+----
+
  _______  _______ _________ _______
 (  ____ \(  ____ )\__   __/(  ____ \
 | (    \/| (    )|   ) (   | (    \/
@@ -2910,20 +3598,26 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
 | (____/\| )      ___) (___| (____/\
 (_______/|/       \_______/(_______/
 
-```
-#### Morse (MORSE)
-```
+----
+==== Morse (MORSE)
+[source]
+----
+
 -- --- .-. ... .
-```
-#### Knob (KNOB)
-```
+----
+==== Knob (KNOB)
+[source]
+----
+
  _________  _________  _________  _________
 (___    __)(______  _)(  _____  )(  _   _  )
  __/ __ \_  _____/ /_ | |_____| || |_| |_| |
 (___/  \__)(_________)(_________)(____/\___)
-```
-#### amcrazo2 (AMCRAZOTWO)
-```
+----
+==== amcrazo2 (AMCRAZOTWO)
+[source]
+----
+
    . .       . .    .       . .       . .       . .                 . .       . .
 .+'|=|`+. .+'|=|`+.=|`+. .+'|=|`+. .+'|=|`+. .+'|=|`+. |~~|=|~~| .+'|=|`+. .+'|=|`+.
 |  | |  | |  | `+ | `+ | |  | `+.| |  | |  | |  | |  | |.+' |  | |  | |  | |.+' |  |
@@ -2933,33 +3627,41 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
 |  | |  | |  |  | |  | | |  | .+'| |  | |  | |  | |  | |  | .+'| |  | |  | |  | .+'|
 `+.| |..| `+.|  |.|  |+' `+.|=|.+' `+.| |.+' `+.| |..| |..|=|..| `+.|=|.+' `+.|=|.+'
 
-```
-#### lineblocks (LINEBLOCKS)
-```
+----
+==== lineblocks (LINEBLOCKS)
+[source]
+----
+
  _       _____  ______   ______  ______   _        ______   ______  _    __  ______
 | |       | |  | |  \ \ | |     | |  | \ | |      / |  | \ | |     | |  / / / |
 | |   _   | |  | |  | | | |---- | |--| < | |   _  | |  | | | |     | |-< <  '------.
 |_|__|_| _|_|_ |_|  |_| |_|____ |_|__|_/ |_|__|_| \_|__|_/ |_|____ |_|  \_\  ____|_/
 
-```
-#### Bubble (BUBBLE)
-```
+----
+==== Bubble (BUBBLE)
+[source]
+----
+
    _   _   _   _   _   _
   / \ / \ / \ / \ / \ / \
  ( B | u | b | b | l | e )
   \_/ \_/ \_/ \_/ \_/ \_/
-```
-#### Invita (INVITA)
-```
+----
+==== Invita (INVITA)
+[source]
+----
+
      _____
     (, /          ,
       / __  _ _    _/_ _
   ___/__/ (_(/___(_(__(_(_
 (__ /
 
-```
-#### wetletter (WETLETTER)
-```
+----
+==== wetletter (WETLETTER)
+[source]
+----
+
 .-.  .-.,---. _______ ,-.    ,---. _______  _______ ,---.  ,---.
 | |/\| || .-'|__   __|| |    | .-'|__   __||__   __|| .-'  | .-.\
 | /  \ || `-.  )| |   | |    | `-.  )| |     )| |   | `-.  | `-'/
@@ -2967,9 +3669,11 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
 |(/  \ ||  `--. | |   | `--. |  `--. | |      | |   |  `--.| |\ \
 (_)   \|/( __.' `-'   |( __.'/( __.' `-'      `-'   /( __.'|_| \)\
        (__)           (_)   (__)                   (__)        (__)
-```
-#### amcrazor (AMCRAZOR)
-```
+----
+==== amcrazor (AMCRAZOR)
+[source]
+----
+
                                 ___        __               ___   ___                     __
   .'|=|`.     .'|\/|`.     .'|=|_.'   .'|=|  |   .'|=|`.    `._|=|   |   .'|=|`.     .'|=|  |
 .'  | |  `. .'  |  |  `. .'  |      .'  | |  | .'  | |  `.       |  .' .'  | |  `. .'  | |  |
@@ -2977,9 +3681,11 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
 |   | |   | |   |  |   | `.  |  ___ |   |  |`. |   | |   | .'  |  ___  `.  | |  .' |   |  |`.
 |___| |___| |___|  |___|   `.|=|_.' |___|  |_| |___| |___| |___|=|_.'    `.|=|.'   |___|  |_|
 
-```
-#### Henry 3D (HENRY_THREED)
-```
+----
+==== Henry 3D (HENRY_THREED)
+[source]
+----
+
     _  _                                               ____      ___
    FJ  L]     ____     _ ___     _ ___   _    _       F___ J    F __".
   J |__| L   F __ J   J '__ J   J '__ ",J |  | L      `-__| L  J |--\ L
@@ -2988,17 +3694,21 @@ YM      M MM       MM     MM  MM      YMM9     MM  MM MM     MM
  J__L  J__LJ\______/FJ__L  J__LJ__L     )-____  L   J\______/FJ______/F
  |__L  J__| J______F |__L  J__||__L    J\______/F    J______F |______F
                                         J______F
-```
-#### Tombstone (TOMBSTONE)
-```
+----
+==== Tombstone (TOMBSTONE)
+[source]
+----
+
  ___  _, _, _ __,  _, ___  _, _, _ __,
   |  / \ |\/| |_) (_   |  / \ |\ | |_
   |  \ / |  | |_) , )  |  \ / | \| |
   ~   ~  ~  ~ ~    ~   ~   ~  ~  ~ ~~~
 
-```
-#### Big Chief (BIG_CHIEF)
-```
+----
+==== Big Chief (BIG_CHIEF)
+[source]
+----
+
 _______________________________________________________________
     ____                        __                           _
     /   )     ,               /    )    /      ,           /  `
@@ -3007,17 +3717,21 @@ _______________________________________________________________
 _/____/____/____(___/______(____/____/___/__/____(___ __/______
                    /
                (_ /
-```
-#### Small (SMALL)
-```
+----
+==== Small (SMALL)
+[source]
+----
+
   ___            _ _
  / __|_ __  __ _| | |
  \__ \ '  \/ _` | | |
  |___/_|_|_\__,_|_|_|
 
-```
-#### AMC Neko (AMC_NEKO)
-```
+----
+==== AMC Neko (AMC_NEKO)
+[source]
+----
+
 .sSSSSs.    .sSSSsSS SSsSSSSS .sSSSSs.         .sSSSs.  SSSSS
 SSSSSSSSSs. SSSSS  SSS  SSSSS SSSSSSSSSs.      SSSSS SS SSSSS .sSSSSs.    .sSSS  SSSSS  .sSSSSs.
 S SSS SSSSS S SSS   S   SSSSS S SSS SSSSS      S SSS  `sSSSSS S SSSSSSSs. S SSS SSSSS   S SSSSSSSs.
@@ -3028,9 +3742,11 @@ S;;;S SSSSS S;;;S       SSSSS S;;;S SSSSS      S;;;S    SSSSS S;;;S       S;;;S 
 S%%%S SSSSS S%%%S       SSSSS S%%%S SSSSS      S%%%S    SSSSS S%%%S SSSSS S%%%S  SSSSS  S%%%S SSSSS
 SSSSS SSSSS SSSSS       SSSSS SSSSSsSSSSS      SSSSS    SSSSS SSSSSsSS;:' SSSSS   SSSSS SSSSSsSSSSS
 
-```
-#### henry3d (HENRYTHREED)
-```
+----
+==== henry3d (HENRYTHREED)
+[source]
+----
+
     _                                               ____         _
    FJ___      ____     _ ___     _ ___   _    _    F___ J     ___FJ
   J  __ `.   F __ J   J '__ J   J '__ ",J |  | L   `-__| L   F __  L
@@ -3039,9 +3755,11 @@ SSSSS SSSSS SSSSS       SSSSS SSSSSsSSSSS      SSSSS    SSSSS SSSSSsSS;:' SSSSS 
  J__L  J__LJ\______/FJ__L  J__LJ__L     )-____  LJ\______/FJ\____,__L
  |__L  J__| J______F |__L  J__||__L    J\______/F J______F  J____,__F
                                         J______F
-```
-#### Old Banner (OLD_BANNER)
-```
+----
+==== Old Banner (OLD_BANNER)
+[source]
+----
+
 #######                  ######
 #     # #      #####     #     #   ##   #    # #    # ###### #####
 #     # #      #    #    #     #  #  #  ##   # ##   # #      #    #
@@ -3049,9 +3767,11 @@ SSSSS SSSSS SSSSS       SSSSS SSSSSsSSSSS      SSSSS    SSSSS SSSSSsSS;:' SSSSS 
 #     # #      #    #    #     # ###### #  # # #  # # #      #####
 #     # #      #    #    #     # #    # #   ## #   ## #      #   #
 ####### ###### #####     ######  #    # #    # #    # ###### #    #
-```
-#### Coinstak (COINSTAK)
-```
+----
+==== Coinstak (COINSTAK)
+[source]
+----
+
     O))                                  O))            O))
  O))   O))           O)                  O))            O))
 O))          O))       O)) O))   O)))) O)O) O)   O))    O))  O))
@@ -3060,18 +3780,22 @@ O))       O))    O))O)) O))  O))  O)))   O))  O))   O)) O)O))
  O))   O)) O))  O)) O)) O))  O))    O))  O))  O))   O)) O)) O))
    O))))     O))    O))O)))  O))O)) O))   O))   O)) O)))O))  O))
 
-```
-#### Letters (LETTERS)
-```
+----
+==== Letters (LETTERS)
+[source]
+----
+
 LL             tt    tt
 LL        eee  tt    tt      eee  rr rr   sss
 LL      ee   e tttt  tttt  ee   e rrr  r s
 LL      eeeee  tt    tt    eeeee  rr      sss
 LLLLLLL  eeeee  tttt  tttt  eeeee rr         s
                                           sss
-```
-#### Relief (RELIEF)
-```
+----
+==== Relief (RELIEF)
+[source]
+----
+
 ______________________________________________________________
 /~~~~~~~\__/~~~~~~~~\_/~~\_______/~~~~\_/~~~~~~~~\_/~~~~~~~~\_
 /~~\__/~~\_/~~\_______/~~\________/~~\__/~~\_______/~~\_______
@@ -3079,9 +3803,11 @@ ______________________________________________________________
 /~~\__/~~\_/~~\_______/~~\________/~~\__/~~\_______/~~\_______
 /~~\__/~~\_/~~~~~~~~\_/~~~~~~~~\_/~~~~\_/~~~~~~~~\_/~~\_______
 ______________________________________________________________
-```
-#### Basic (BASIC)
-```
+----
+==== Basic (BASIC)
+[source]
+----
+
 d8888b.  .d8b.  .d8888. d888888b  .o88b.
 88  `8D d8' `8b 88'  YP   `88'   d8P  Y8
 88oooY' 88ooo88 `8bo.      88    8P
@@ -3090,15 +3816,19 @@ d8888b.  .d8b.  .d8888. d888888b  .o88b.
 Y8888P' YP   YP `8888Y' Y888888P  `Y88P'
 
 
-```
-#### doubleshorts (DOUBLESHORTS)
-```
+----
+==== doubleshorts (DOUBLESHORTS)
+[source]
+----
+
 _____  _____  __ __ ____  __    _____   __ __  __  _____  _____ _____   __
 ||  ) ((   )) || || ||=)  ||    ||==   ((  ||==|| ((   )) ||_//  ||    ((
 ||_//  \\_//  \\_// ||_)) ||__| ||___ \_)) ||  ||  \\_//  || \\  ||   \_))
-```
-#### Rammstein (RAMMSTEIN)
-```
+----
+==== Rammstein (RAMMSTEIN)
+[source]
+----
+
      _____
   __|__   |__  ____    ____    __  ____    __  ______   __    ______  ____  ____   _
  |     |     ||    \  |    \  /  ||    \  /  ||   ___|_|  |_ |   ___||    ||    \ | |
@@ -3106,26 +3836,32 @@ _____  _____  __ __ ____  __    _____   __ __  __  _____  _____ _____   __
  |__|\__\  __||__|\__\|__/\__/|__||__/\__/|__||______| |__|  |______||____||__/\____|
     |_____|
 
-```
-#### Line Blocks (LINE_BLOCKS)
-```
+----
+==== Line Blocks (LINE_BLOCKS)
+[source]
+----
+
  _       _____  ______   ______    ______   _        ______   ______  _    __  ______
 | |       | |  | |  \ \ | |       | |  | \ | |      / |  | \ | |     | |  / / / |
 | |   _   | |  | |  | | | |----   | |--| < | |   _  | |  | | | |     | |-< <  '------.
 |_|__|_| _|_|_ |_|  |_| |_|____   |_|__|_/ |_|__|_| \_|__|_/ |_|____ |_|  \_\  ____|_/
 
-```
-#### Moscow (MOSCOW)
-```
+----
+==== Moscow (MOSCOW)
+[source]
+----
+
 
 #   #  ###   #### #   #  ###  #   #
 ## ## #   # #     #   # #   # # # #
 # # # #   # #      #### #   # # # #
 #   # #   # #         # #   # # # #
 #   #  ###   ####     #  ###   ###
-```
-#### Isometric4 (ISOMETRICFOUR)
-```
+----
+==== Isometric4 (ISOMETRICFOUR)
+[source]
+----
+
                    ___           ___           ___           ___                         ___                        ___
        ___        /  /\         /  /\         /  /\         /  /\          ___          /  /\           ___        /  /\
       /__/\      /  /::\       /  /::\       /  /::|       /  /::\        /__/\        /  /::\         /__/\      /  /::\
@@ -3137,9 +3873,11 @@ _____  _____  __ __ ____  __    _____   __ __  __  _____  _____ _____   __
    \  \:\       \  \:\/:/     \  \:\/:/        /  /:/     \  \:\_\/     /__/:/         |  |:|\/     \  \:\       \  \:\
     \__\/        \  \::/       \  \::/        /__/:/       \  \:\       \__\/          |__|:|~       \__\/        \  \:\
                   \__\/         \__\/         \__\/         \__\/                       \__\|                      \__\/
-```
-#### Doom (DOOM)
-```
+----
+==== Doom (DOOM)
+[source]
+----
+
 ______
 |  _  \
 | | | |  ___    ___   _ __ ___
@@ -3148,23 +3886,29 @@ ______
 |___/   \___/  \___/ |_| |_| |_|
 
 
-```
-#### Mshebrew210 (MSHEBREWTWOONEZERO)
-```
+----
+==== Mshebrew210 (MSHEBREWTWOONEZERO)
+[source]
+----
+
 
 ""|""| |""||""|'
 | '  |_|| '   |
 |       |
-```
-#### JS Capital Curves (JS_CAPITAL_CURVES)
-```
+----
+==== JS Capital Curves (JS_CAPITAL_CURVES)
+[source]
+----
+
   ____, ____     ____   ___,   ___, ____, ____, ___,   __       ____   __   _, ___,   __  _, ____, ____
  (-|   (-(__`   (-/  ` (-|_\_,(-|_)(-|   (-|   (-|_\_,(-|      (-/  ` (-|  |  (-|_)  (-\ |  (-|_, (-(__`
  _ |    ____)     \___, _|  )  _|   _|__, _|    _|  )  _|__,     \___,  |__|_, _| \_,   \|   _|__, ____)
 (__/   (               (      (    (     (     (      (                       (             (     (
-```
-#### DWhistled (DWHISTLED)
-```
+----
+==== DWhistled (DWHISTLED)
+[source]
+----
+
  Whistl
 x      XX
 x      XX
@@ -3175,18 +3919,22 @@ x      .X
 
 DWhistled
 
-```
-#### Contrast (CONTRAST)
-```
+----
+==== Contrast (CONTRAST)
+[source]
+----
+
 ..%%%%....%%%%...%%..%%..%%%%%%..%%%%%....%%%%....%%%%...%%%%%%.
 .%%..%%..%%..%%..%%%.%%....%%....%%..%%..%%..%%..%%........%%...
 .%%......%%..%%..%%.%%%....%%....%%%%%...%%%%%%...%%%%.....%%...
 .%%..%%..%%..%%..%%..%%....%%....%%..%%..%%..%%......%%....%%...
 ..%%%%....%%%%...%%..%%....%%....%%..%%..%%..%%...%%%%.....%%...
 ................................................................
-```
-#### Nipples (NIPPLES)
-```
+----
+==== Nipples (NIPPLES)
+[source]
+----
+
 {___     {__                    {__
 {_ {__   {__ {_                 {__
 {__ {__  {__   {_ {__  {_ {__   {__   {__     {____
@@ -3195,33 +3943,41 @@ DWhistled
 {__    {_ __{__{__ {__ {__ {__  {__{_            {__
 {__      {__{__{__     {__     {___  {____   {__ {__
                {__     {__
-```
-#### Slide (SLIDE)
-```
+----
+==== Slide (SLIDE)
+[source]
+----
+
  #HH||#| #|   H|
 ##    #|      H| #H|
  #HH| #| #| #HH|##HH|
     ||#| #|## H|##
 ##HH| #H|#H|#HH| #HH|
 
-```
-#### Rowan Cap (ROWAN_CAP)
-```
+----
+==== Rowan Cap (ROWAN_CAP)
+[source]
+----
+
     dMMMMb    .aMMMb    dMP dMP dMP     .aMMMb     dMMMMb        .aMMMb     .aMMMb     dMMMMb
    dMP.dMP   dMP"dMP   dMP dMP dMP     dMP"dMP    dMP dMP       dMP"VMP    dMP"dMP    dMP.dMP
   dMMMMK"   dMP dMP   dMP dMP dMP     dMMMMMP    dMP dMP       dMP        dMMMMMP    dMMMMP"
  dMP"AMF   dMP.aMP   dMP.dMP.dMP     dMP dMP    dMP dMP       dMP.aMP    dMP dMP    dMP
 dMP dMP    VMMMP"    VMMMPVMMP"     dMP dMP    dMP dMP        VMMMP"    dMP dMP    dMP
 
-```
-#### JS Block Letters (JS_BLOCK_LETTERS)
-```
+----
+==== JS Block Letters (JS_BLOCK_LETTERS)
+[source]
+----
+
   __   ____    _____  _     ____  ____  __  __     _     ____  _____  _____  ____ _____   ____
 __) | (_ (_`   | () )| |__ / () \/ (__`|  |/  /   | |__ | ===||_   _||_   _|| ===|| () ) (_ (_`
 \___/.__)__)   |_()_)|____|\____/\____)|__|\__\   |____||____|  |_|    |_|  |____||_|\_\.__)__)
-```
-#### Hollywood (HOLLYWOOD)
-```
+----
+==== Hollywood (HOLLYWOOD)
+[source]
+----
+
            _
           ' )     )           /' /'                                               /'
           /'    /'          /' /'                                               /'
@@ -3232,9 +3988,11 @@ __) | (_ (_`   | () )| |__ / () \/ (__`|  |/  /   | |__ | ===||_   _||_   _|| ==
                                  /'
                          /     /'
                         (___,/'
-```
-#### amcaaa01 (AMCAAAZEROONE)
-```
+----
+==== amcaaa01 (AMCAAAZEROONE)
+[source]
+----
+
  .S_SSSs     .S_SsS_S.     sSSs   .S_SSSs     .S_SSSs     .S_SSSs
 .SS~SSSSS   .SS~S*S~SS.   d%%SP  .SS~SSSSS   .SS~SSSSS   .SS~SSSSS
 S%S   SSSS  S%S `Y' S%S  d%S'    S%S   SSSS  S%S   SSSS  S%S   SSSS
@@ -3250,33 +4008,41 @@ SSS    S*S  SSS     S*S    YSSP  SSS    S*S  SSS    S*S  SSS    S*S
        SP           SP                  SP          SP          SP
        Y            Y                   Y           Y           Y
 
-```
-#### Horizontal Left (HORIZONTAL_LEFT)
-```
+----
+==== Horizontal Left (HORIZONTAL_LEFT)
+[source]
+----
+
  _______   _______   _______   _     _   _     _   _______   _______   _          ______   _______     _______   _______   _______   _
 \__   __\ /  ____ \ / ___  _| | |___| | | |  .` | /  ____ \ `._   __| | /_____  .`  _ ._| /______ \   /______ \ | ._ _. | |  _ ___| | /_____
  __| |__  | /___/ | | \_/  \  |  ___  | | |.`_. | | /___/ |  _`. `._  | ______/ \  \_||_        / |         / | | \ v / | | ||_\    | ______/
 \_______\ \_______/ `.__.`\_| |_|   |_| |__.` |_| \_______/ |_______| |_\        `._____|       \_|         \_| |_/   \_| |_/       |_\
 
 
-```
-#### smslant (SMSLANT)
-```
+----
+==== smslant (SMSLANT)
+[source]
+----
+
                  __          __
   ___ __ _  ___ / /__ ____  / /_
  (_-</  ' \(_-</ / _ `/ _ \/ __/
 /___/_/_/_/___/_/\_,_/_//_/\__/
 
-```
-#### Four Tops (FOUR_TOPS)
-```
+----
+==== Four Tops (FOUR_TOPS)
+[source]
+----
+
 |~~              ~~|~~
 |--/~\|   ||/~\    |/~\|~~\(~
 |  \_/ \_/||       |\_/|__/_)
                        |
-```
-#### AMC AAA01 (AMC_AAAZEROONE)
-```
+----
+==== AMC AAA01 (AMC_AAAZEROONE)
+[source]
+----
+
  .S_SSSs     .S_SsS_S.     sSSs         .S_SSSs     .S_SSSs     .S_SSSs
 .SS~SSSSS   .SS~S*S~SS.   d%%SP        .SS~SSSSS   .SS~SSSSS   .SS~SSSSS
 S%S   SSSS  S%S `Y' S%S  d%S'          S%S   SSSS  S%S   SSSS  S%S   SSSS
@@ -3292,9 +4058,11 @@ SSS    S*S  SSS     S*S    YSSP        SSS    S*S  SSS    S*S  SSS    S*S
        SP           SP                        SP          SP          SP
        Y            Y                         Y           Y           Y
 
-```
-#### Flower Power (FLOWER_POWER)
-```
+----
+==== Flower Power (FLOWER_POWER)
+[source]
+----
+
  ________   .---.       ,-----.    .--.      .--.    .-''-.  .-------.            .-------.     ,-----.    .--.      .--.    .-''-.  .-------.
 |        |  | ,_|     .'  .-,  '.  |  |_     |  |  .'_ _   \ |  _ _   \           \  _(`)_ \  .'  .-,  '.  |  |_     |  |  .'_ _   \ |  _ _   \
 |   .----',-./  )    / ,-.|  \ _ \ | _( )_   |  | / ( ` )   '| ( ' )  |           | (_ o._)| / ,-.|  \ _ \ | _( )_   |  | / ( ` )   '| ( ' )  |
@@ -3305,9 +4073,11 @@ SSS    S*S  SSS     S*S    YSSP        SSS    S*S  SSS    S*S  SSS    S*S
 |   |       |        \'. \_/``".'  |    /  \    |  \       / |  |  \    /         /   )       '. \_/``".'  |    /  \    |  \       / |  |  \    /
 '---'       `--------`  '-----'    `---'    `---`   `'-..-'  ''-'   `'-'          `---'         '-----'    `---'    `---`   `'-..-'  ''-'   `'-'
 
-```
-#### AMC Untitled (AMC_UNTITLED)
-```
+----
+==== AMC Untitled (AMC_UNTITLED)
+[source]
+----
+
 ,'',,''', ,'',,'',,'', ,'',,'',     ,'',  ,'',
 ;  ;',  ; ;  ;', ;', ; ;  ;',,'     ;  ;  ;  ;
 ;  ;,'  ; ;  ; ; ; ; ; ;  ;         ;  ;  ;  ; ,'',,'', ,'',,'',,'', ,'', ,'',,'',,'', ,'',     ,'',,'', ,'',,'',
@@ -3316,18 +4086,24 @@ SSS    S*S  SSS     S*S    YSSP        SSS    S*S  SSS    S*S  SSS    S*S
 ;  ; ;  ; ;  ; ; ; ; ; ;  ;,'',     ;  ',,'  ; ;  ; ; ;     ;  ;     ;  ;     ;  ;     ;  ;,'', ;  ; ,,  ;  ;;   ;
 ',,' ',,' ',,' ',' ',' ',,'',,'     ',,,'',,,' ',,' ','     ',,'     ',,'     ',,'     ',,'',,' ',,'',,' ',,'',,'
 
-```
-#### Term (TERM)
-```
+----
+==== Term (TERM)
+[source]
+----
+
 Term
-```
-#### Konto Slant (KONTO_SLANT)
-```
+----
+==== Konto Slant (KONTO_SLANT)
+[source]
+----
+
  /.�  /�/  /1 / �/�  /�/    /��  /  /1  /1 / �/�
 /�.  /./  / 1/  /   /./    ../  /. /�/ / 1/  /
-```
-#### Isometric1 (ISOMETRICONE)
-```
+----
+==== Isometric1 (ISOMETRICONE)
+[source]
+----
+
                   ___           ___           ___           ___           ___           ___                       ___
       ___        /\  \         /\  \         /\__\         /\  \         /\  \         /\  \          ___        /\  \
      /\  \      /::\  \       /::\  \       /::|  |       /::\  \        \:\  \       /::\  \        /\  \      /::\  \
@@ -3339,13 +4115,17 @@ Term
   \:\__\       \:\/:/  /     \:\/:/  /        /:/  /     \:\ \/__/     \/__/          |:|\/__/    \:\__\       \:\  \
    \/__/        \::/  /       \::/  /        /:/  /       \:\__\                      |:|  |       \/__/        \:\__\
                  \/__/         \/__/         \/__/         \/__/                       \|__|                     \/__/
-```
-#### Decimal (DECIMAL)
-```
+----
+==== Decimal (DECIMAL)
+[source]
+----
+
 68 101 99 105 109 97 108
-```
-#### Tiles (TILES)
-```
+----
+==== Tiles (TILES)
+[source]
+----
+
 [... [......    [..
      [..     [. [..
      [..        [..   [..     [....
@@ -3354,9 +4134,11 @@ Term
      [..    [.. [..[.            [..
      [..    [..[...  [....   [.. [..
 
-```
-#### lildevil (LILDEVIL)
-```
+----
+==== lildevil (LILDEVIL)
+[source]
+----
+
            _             _(`-')    (`-')  _      (`-')  _
    <-.    (_)      <-.  ( (OO ).-> ( OO).-/     _(OO ) (_)      <-.
  ,--. )   ,-(`-'),--. )  \    .'_ (,------.,--.(_/,-.\ ,-(`-'),--. )
@@ -3365,15 +4147,19 @@ Term
 (|  '__ |(|  |_/(|  '__ ||  |  / : |  .--' _ \     /_)(|  |_/(|  '__ |
  |     |' |  |'->|     |'|  '-'  / |  `---.\-'\   /    |  |'->|     |'
  `-----'  `--'   `-----' `------'  `------'    `-'     `--'   `-----'
-```
-#### Three Point (THREE_POINT)
-```
+----
+==== Three Point (THREE_POINT)
+[source]
+----
+
 ~|~|_  _ _  _   |~) _ . _ _|_
  | | || (/_(/_  |~ (_)|| | |
 
-```
-#### Lil Devil (LIL_DEVIL)
-```
+----
+==== Lil Devil (LIL_DEVIL)
+[source]
+----
+
            _                  _(`-')    (`-')  _      (`-')  _
    <-.    (_)      <-.       ( (OO ).-> ( OO).-/     _(OO ) (_)      <-.
  ,--. )   ,-(`-'),--. )       \    .'_ (,------.,--.(_/,-.\ ,-(`-'),--. )
@@ -3382,9 +4168,11 @@ Term
 (|  '__ |(|  |_/(|  '__ |     |  |  / : |  .--' _ \     /_)(|  |_/(|  '__ |
  |     |' |  |'->|     |'     |  '-'  / |  `---.\-'\   /    |  |'->|     |'
  `-----'  `--'   `-----'      `------'  `------'    `-'     `--'   `-----'
-```
-#### Relief2 (RELIEFTWO)
-```
+----
+==== Relief2 (RELIEFTWO)
+[source]
+----
+
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 //////// \\///////// \/// \\\\\\\///// \///////// \///////// \\/////// \
 /// \\/// \/// \\\\\\\/// \\\\\\\\/// \\/// \\\\\\\/// \\\\\\\/// \/// \
@@ -3392,9 +4180,11 @@ Term
 /// \\/// \/// \\\\\\\/// \\\\\\\\/// \\/// \\\\\\\/// \\\\\\\\/// \\\\\
 /// \\/// \///////// \///////// \///// \///////// \/// \\\\\\\//////// \
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-```
-#### Small Isometric1 (SMALL_ISOMETRICONE)
-```
+----
+==== Small Isometric1 (SMALL_ISOMETRICONE)
+[source]
+----
+
     ___       ___       ___       ___       ___            ___       ___       ___       ___       ___       ___       ___       ___       ___
    /\  \     /\__\     /\  \     /\__\     /\__\          /\  \     /\  \     /\  \     /\__\     /\  \     /\  \     /\  \     /\  \     /\  \
   /::\  \   /::L_L_   /::\  \   /:/  /    /:/  /         _\:\  \   /::\  \   /::\  \   /::L_L_   /::\  \    \:\  \   /::\  \   _\:\  \   /::\  \
@@ -3402,16 +4192,20 @@ Term
  \:\:\/__/ \/_/:/  / \/\::/  / \:\  \    \:\  \         \::/\/__/ \:\:\/__/ \:\/:/  / \/_/:/  / \:\:\/  /  /:/\/__/ \;:::/  / \::/\/__/ \:\ \/__/
   \::/  /    /:/  /    /:/  /   \:\__\    \:\__\         \:\__\    \::/  /   \::/  /    /:/  /   \:\/  /   \/__/     |:\/__/   \:\__\    \:\__\
    \/__/     \/__/     \/__/     \/__/     \/__/          \/__/     \/__/     \/__/     \/__/     \/__/               \|__|     \/__/     \/__/
-```
-#### Contessa (CONTESSA)
-```
+----
+==== Contessa (CONTESSA)
+[source]
+----
+
  __        ,
 /  ` _ ._ -+- _  __ __ _.
 \__.(_)[ ) | (/,_) _) (_]
 
-```
-#### Arrows (ARROWS)
-```
+----
+==== Arrows (ARROWS)
+[source]
+----
+
       >>
      >>=>
     >> >=>     >> >==> >> >==>    >=>     >=>      >=>  >===>
@@ -3420,18 +4214,22 @@ Term
  >=>      >=>   >=>     >=>     >=>  >=>   >=>>  >=>=>     >=>
 >=>        >=> >==>    >==>       >=>     >==>    >==> >=> >=>
 
-```
-#### cosmic (COSMIC)
-```
+----
+==== cosmic (COSMIC)
+[source]
+----
+
   .,-:::::     ...      .::::::. .        :   :::  .,-:::::
 ,;;;'````'  .;;;;;;;.  ;;;`    ` ;;,.    ;;;  ;;;,;;;'````'
 [[[        ,[[     \[[,'[==/[[[[,[[[[, ,[[[[, [[[[[[
 $$$        $$$,     $$$  '''    $$$$$$$$$"$$$ $$$$$$
 `88bo,__,o,"888,_ _,88P 88b    dP888 Y88" 888o888`88bo,__,o,
   "YUMMMMMP" "YMMMMMP"   "YMmMY" MMM  M'  "MMMMMM  "YUMMMMMP"
-```
-#### Isometric3 (ISOMETRICTHREE)
-```
+----
+==== Isometric3 (ISOMETRICTHREE)
+[source]
+----
+
                   ___           ___           ___           ___                       ___                       ___
     ___          /  /\         /  /\         /__/\         /  /\          ___        /  /\        ___          /  /\
    /  /\        /  /:/_       /  /::\       |  |::\       /  /:/_        /  /\      /  /::\      /  /\        /  /:/
@@ -3443,9 +4241,11 @@ $$$        $$$,     $$$  '''    $$$$$$$$$"$$$ $$$$$$
      /__/:/    \__\/ /:/     \  \:\/:/     \  \:\        \  \:\/:/        \  \:\   \  \:\          /__/:/    \  \:\/:/
      \__\/       /__/:/       \  \::/       \  \:\        \  \::/          \__\/    \  \:\         \__\/      \  \::/
                  \__\/         \__\/         \__\/         \__\/                     \__\/                     \__\/
-```
-#### THIS (THIS)
-```
+----
+==== THIS (THIS)
+[source]
+----
+
  ▄▀▀▀█▀▀▄  ▄▀▀▄ ▄▄   ▄▀▀█▀▄   ▄▀▀▀▀▄
 █    █  ▐ █  █   ▄▀ █   █  █ █ █   ▐
 ▐   █     ▐  █▄▄▄█  ▐   █  ▐    ▀▄
@@ -3453,9 +4253,11 @@ $$$        $$$,     $$$  '''    $$$$$$$$$"$$$ $$$$$$
  ▄▀         ▄▀  ▄▀   ▄▀▀▀▀▀▄  █▀▀▀
 █          █   █    █       █ ▐
 ▐          ▐   ▐    ▐       ▐
-```
-#### Isometric2 (ISOMETRICTWO)
-```
+----
+==== Isometric2 (ISOMETRICTWO)
+[source]
+----
+
                   ___           ___           ___           ___                         ___                       ___
                  /\__\         /\  \         /\  \         /\__\                       /\  \                     /\__\
     ___         /:/ _/_       /::\  \       |::\  \       /:/ _/_         ___         /::\  \       ___         /:/  /
@@ -3467,9 +4269,11 @@ $$$        $$$,     $$$  '''    $$$$$$$$$"$$$ $$$$$$
      \::/  /   \/_/:/  /     \:\/:/  /     \:\  \        \:\/:/  /   \/__\:\  \      \:\~~\          \::/  /   \:\/:/  /
      /:/  /      /:/  /       \::/  /       \:\__\        \::/  /         \:\__\      \:\__\         /:/  /     \::/  /
      \/__/       \/__/         \/__/         \/__/         \/__/           \/__/       \/__/         \/__/       \/__/
-```
-#### Swan (SWAN)
-```
+----
+==== Swan (SWAN)
+[source]
+----
+
 
 
  .-.
@@ -3479,27 +4283,33 @@ $$$        $$$,     $$$  '''    $$$$$$$$$"$$$ $$$$$$
  `-'  `' `'   `-'`-'  `-
 
 
-```
-#### Trek (TREK)
-```
+----
+==== Trek (TREK)
+[source]
+----
+
   dBBBBBBP dBBBBBb    dBBBP  dBP dBP
                dBP          d8P.dBP
    dBP     dBBBBK   dBBP   dBBBBP
   dBP     dBP  BB  dBP    dBP BB
  dBP     dBP  dB' dBBBBP dBP dBP
 
-```
-#### 3x5 (THREEXFIVE)
-```
+----
+==== 3x5 (THREEXFIVE)
+[source]
+----
+
 
 ###     ###
   # # # #
  ##  #  ###
   # # #   #
 ###     ###
-```
-#### bigchief (BIGCHIEF)
-```
+----
+==== bigchief (BIGCHIEF)
+[source]
+----
+
 _____________________________________________________
                                                    _
     /      ,                  /      ,           /  `
@@ -3508,5 +4318,5 @@ _____________________________________________________
 _(___/__/____(___/__(___ __/___/__/____(___ __/______
                 /
             (_ /
-```
+----
 

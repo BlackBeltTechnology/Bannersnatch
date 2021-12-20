@@ -89,25 +89,25 @@ image::palette_16_legacy.png[]
 
 [source, java]
 ----
-System.out.println(Banner.buildBanner()
+System.out.println(Banner.bannerBuilder()
     .termColorModel(TermColor.TermColorModel.COLOR_RGB)
     .build()
-    .drawPalette(80));
+    .drawPalette(80, 16));
 ----
 
 ==== Draw ascii without any ansi sequence
 
 [source, java]
 ----
-System.out.println(Banner.buildBanner().build().drawAscii("Colorless ASCII"));
+System.out.println(Banner.bannerBuilder().build().drawAscii("Colorless ASCII"));
 ----
 
 ==== Draw text with color
 
 [source, java]
 ----
-System.out.println(Banner.buildBanner().build().drawColor("Red Text", new Hsl(0, 1.0, 0.5)));
-System.out.println(Banner.buildBanner().build().drawColor("Red Text", new Rgb(255, 0, 0)));
+System.out.println(Banner.bannerBuilder().build().drawColor("Red Text", new Hsl(0, 1.0, 0.5)));
+System.out.println(Banner.bannerBuilder().build().drawColor("Red Text", new Rgb(255, 0, 0)));
 
 ----
 
@@ -117,7 +117,7 @@ image::colortext.png[]
 
 [source, java]
 ----
-System.out.println(Banner.buildBanner().build().drawColorRange("Rainbow Color",
+System.out.println(Banner.bannerBuilder().build().drawColorRange("Rainbow Color",
         new Hsl(0, 1.0, 0.5), new Hsl(0.5, 1.0, 0.5)));
 ----
 
@@ -127,7 +127,7 @@ image::gradient.png[]
 
 [source, java]
 ----
-System.out.println(Banner.buildBanner().build().drawCrazy("Crazy heh?"));
+System.out.println(Banner.bannerBuilder().build().drawCrazy("Crazy heh?"));
 ----
 
 image::random.png[]
@@ -154,7 +154,7 @@ sb.append("Line 14\n");
 sb.append("Line 15\n");
 sb.append("Line 16\n");
 
-System.out.println(Banner.buildBanner().build().colorize(sb.toString(),
+System.out.println(Banner.bannerBuilder().build().colorize(sb.toString(),
         new Hsl(0, 1.0, 0.5), new Hsl(1.0, 1.0, 0.5)));
 ----
 

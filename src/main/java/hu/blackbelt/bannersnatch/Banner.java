@@ -11,7 +11,7 @@ import lombok.Builder;
 import java.io.IOException;
 import java.util.*;
 
-@Builder(builderMethodName = "buildBanner")
+@Builder(builderMethodName = "bannerBuilder")
 public class Banner {
     static Random random = new Random();
 
@@ -29,14 +29,14 @@ public class Banner {
      * @param cols
      * @return
      */
-    public String drawPalette(int cols) {
+    public String drawPalette(int cols, int rows) {
         StringBuilder sb = new StringBuilder();
-        for (int l = 1; l < 9; l++) {
+        for (int l = 0; l < rows ; l++) {
             for (int h = 0; h < cols; h++) {
                 Rgb rgb = new Hsl(
                         (1.0 / (double) cols) * (double) h,
                         1.0,
-                        (double) l / 8.0).toRgb();
+                        (double) (l + 1) / (double) rows).toRgb();
 
                 sb.append(rgb.toTerminalColor().toAnsiSequence(termColorModel, false, isGrayscale));
                 sb.append("█");
@@ -114,7 +114,7 @@ public class Banner {
         List<String> fonts = new ArrayList<>(FigFontResources.FONTS);
         String fontName = fonts.get(random.nextInt (fonts.size()- 1));
 
-        Banner figletColorRenderer = Banner.buildBanner()
+        Banner figletColorRenderer = Banner.bannerBuilder()
                 .fontName(fontName).termColorModel(termColorModel).isGrayscale(isGrayscale).build();
 
         Hsl hslStart = new Hsl(Math.random(), Math.random(), Math.random());

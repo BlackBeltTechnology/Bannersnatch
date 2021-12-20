@@ -19,8 +19,8 @@ has born.
 == What name is Bannersnatch?
 
 The origin of name is `Bandersnatch`, which is a
-A bandersnatch is a fictional creature in Lewis Carroll's
-1871 novel Through the Looking-Glass and his 1874 poem The Hunting of
+fictional creature in Lewis Carroll's 1871 novel Through the
+Looking-Glass and his 1874 poem The Hunting of
 the Snark. The name is reused in `Black Mirror's`
 interactive episode. This banner library is interactive, because
 using Figlet fonts to render the text dynamically, and

@@ -13,22 +13,35 @@ class ImageToTextTest {
     void convertImage() throws FileNotFoundException {
         System.out.println(ImageToText.builder()
                 .isColorConverted(false)
-                .targetWidth(40).build()
+                .width(40).build()
                 .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
         System.out.println(ImageToText.builder()
-                .targetWidth(40).build()
+                .width(40).build()
                 .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
         System.out.println(ImageToText.builder()
                 .isGraycale(true)
-                .targetWidth(40).build()
+                .width(40).build()
                 .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
         System.out.println(ImageToText.builder()
-                .useGrayMap(false)
-                .targetWidth(40).build()
+                .useGrayRamp(false)
+                .width(40).build()
                 .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
         System.out.println(ImageToText.builder()
-                .useGrayMap(false)
-                .targetWidth(60).build()
+                .useGrayRamp(false)
+                .width(60).build()
+                .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+
+        System.out.println(ImageToText.builder()
+                .useGrayRamp(true)
+                .grayRampType(ImageToText.GrayRampType.SHORT)
+                .width(60).build()
+                .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+
+        System.out.println(ImageToText.builder()
+                .useGrayRamp(true)
+                .isColorConverted(true)
+                .grayRampType(ImageToText.GrayRampType.UNICODE_SHADE)
+                .width(60).build()
                 .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
 
         assertTrue(true);

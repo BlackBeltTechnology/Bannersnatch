@@ -8,6 +8,8 @@ public class TermColor {
         COLOR_16_LEGACY,
     }
 
+    public static String RESET =  "\u001b[0m";
+
     /* Terminal color conversion table */
     private static final int[] COLOR_256_TO_16 = {
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,

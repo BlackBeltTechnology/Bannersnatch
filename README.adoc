@@ -1,8 +1,8 @@
 :imagesdir: images
+:toc:
 
 = Bannersnatch
 
-:toc:
 
 == What is Bannersnatch?
 
@@ -35,65 +35,16 @@ So very big respect for the original contributors:
  - https://github.com/lalyos/jfiglet
  - https://github.com/dtmo/jfiglet
 
-=== Features
+== Features
 
  * Implementation based on FIGlet 2.2.5 C code: http://www.figlet.org
  * Includes font smushing
  * Includes left-to-right and right-to-left text rendering
  * Can render color gradient banner text
 
-=== Example usage
+== Usage
 
-Rendering FIGlet text with a build-in FIGfont resource
-
-[source, java]
-----
-final FigletRenderer figletRenderer = new FigletRenderer(FigFontResources.loadFontResource(FigFontResources.STANDARD));
-System.out.println(figletRenderer.renderText("Hello world"));
-----
-
-==== Rendering FIGlet text with an external FIGfont file
-
-[source, java]
-----
-final FigFont figFont;
-try(final InputStream inputStream = Files.newInputStream(Paths.get("/usr/local/share/figlet/standard.flf"))) {
-   figFont = FigFont.loadFont(inputStream);
-}
-final FigletRenderer figletRenderer = new FigletRenderer(figFont);
-System.out.println(figletRenderer.renderText("Hello world!"));
-----
-
-==== Rendering banner with Banner
-
-The banner supports the following terminal styles:
-
-- COLOR_16
-+
-image::palette_16.png[]
-
-- COLOR_256
-+
-image::palette_256.png[]
-
-- COLOR_RGB
-+
-image::palette_rgb.png[]
-
-- COLOR_16_LEGACY
-+
-image::palette_16_legacy.png[]
-
-
-==== Draw palette
-
-[source, java]
-----
-System.out.println(Banner.bannerBuilder()
-    .termColorModel(TermColor.TermColorModel.COLOR_RGB)
-    .build()
-    .drawPalette(80, 16));
-----
+==== Rendering banner
 
 ==== Draw ascii without any ansi sequence
 
@@ -162,33 +113,35 @@ image::colorize.png[]
 
 === Image conversion to terminal
 
-Original image:image_ascii.png
+Original image
 
 image::judo-man-icon-cropped.png[]
 
 
-==== Render graymap ascii text without color
+==== Render ramp map ascii text without color
 
 [source, java]
 ----
 System.out.println(ImageToText.builder()
-    .isColorConverted(false).build()
-    .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+        .isColorConverted(false)
+        .width(40).build()
+        .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
 ----
 
 image::image_ascii.png[]
 
-==== Render graymap ascii text with color
+==== Render ramp map ascii text with color
 
 [source, java]
 ----
-System.out.println(ImageToText.builder().build()
-    .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+System.out.println(ImageToText.builder()
+        .width(40).build()
+        .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
 ----
 
 image::image_ascii_color.png[]
 
-==== Render graymap ascii text with gray color
+==== Render ramp map ascii text with gray color
 
 [source, java]
 ----
@@ -199,17 +152,68 @@ System.out.println(ImageToText.builder()
 
 image::image_ascii_gray.png[]
 
-==== Render text with color without graymap
+==== Render text with color without ramp
 
 [source, java]
 ----
 System.out.println(ImageToText.builder()
-    .useGrayMap(false).build()
+    .useGrayRamp(false).build()
     .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
 ----
 
-image::image_ascii_color_without_graymap.png[]
+image::image_ascii_color_without_grayramp.png[]
 
+==== Draw palette
+
+[source, java]
+----
+System.out.println(Banner.bannerBuilder()
+    .termColorModel(TermColor.TermColorModel.COLOR_RGB)
+    .build()
+    .drawPalette(80, 16));
+----
+
+The banner supports the following terminal styles:
+
+- COLOR_16
++
+image::palette_16.png[]
+
+- COLOR_256
++
+image::palette_256.png[]
+
+- COLOR_RGB
++
+image::palette_rgb.png[]
+
+- COLOR_16_LEGACY
++
+image::palette_16_legacy.png[]
+
+=== Usage of FIGlet API
+
+==== Rendering FIGlet text with a build-in FIGfont resource
+
+[source, java]
+----
+final FigletRenderer figletRenderer = new FigletRenderer(FigFontResources.loadFontResource(FigFontResources.STANDARD));
+System.out.println(figletRenderer.renderText("Hello world"));
+----
+
+==== Rendering FIGlet text with an external FIGfont file
+
+[source, java]
+----
+final FigFont figFont;
+try(final InputStream inputStream = Files.newInputStream(Paths.get("/usr/local/share/figlet/standard.flf"))) {
+   figFont = FigFont.loadFont(inputStream);
+}
+final FigletRenderer figletRenderer = new FigletRenderer(figFont);
+System.out.println(figletRenderer.renderText("Hello world!"));
+----
+
+== Appendix
 
 === Built-in FIGfonts
 

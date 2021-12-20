@@ -12,21 +12,41 @@ import javax.imageio.ImageIO;
 
 @Builder
 public class ImageToText {
+    /**
+     * Get ascii character for gray value, the ramp interpolated between 0 (black) and 255 (white)
+     */
+    public enum GrayRampType {
+        STANDARD("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~<>i!lI;:,\"^`'. "),
+        SHORT("@%#*+=-:. "),
+        UNICODE_SHADE("\u2588\u2593\u2592\u2591 "),
+        IBM_437_SHADE(new String(new char[] { 219, 178, 177, 176, 32}));
+
+        public String ramp;
+        GrayRampType(String ramp) {
+            this.ramp = ramp;
+        }
+    }
 
     @Builder.Default
     boolean isColorConverted = true;
 
     @Builder.Default
-    boolean useGrayMap = true;
+    boolean useGrayRamp = true;
 
     @Builder.Default
-    int targetWidth = 80;
+    int width = 80;
 
     @Builder.Default
     double aspectRatio =  3.0 / 4.0;
 
     @Builder.Default
     boolean isGraycale = false;
+
+    @Builder.Default
+    String customGrayRamp = "";
+
+    @Builder.Default
+    GrayRampType grayRampType = GrayRampType.STANDARD;
 
     @Builder.Default
     TermColor.TermColorModel termColorModel = TermColor.TermColorModel.COLOR_256;
@@ -53,9 +73,10 @@ public class ImageToText {
         } catch (IOException e) {
         }
 
-        img = resizeImage(img, targetWidth, (int) ((double) img.getHeight() * ((double) targetWidth / (double) img.getHeight()) * aspectRatio));
+        img = resizeImage(img, width, (int) ((double) img.getHeight() * ((double) width / (double) img.getHeight()) * aspectRatio));
 
         StringBuilder sb = new StringBuilder();
+        sb.append(TermColor.RESET);
         for (int i = 0; i < img.getHeight(); i++) {
             String lastAnsiSeq = "";
             for (int j = 0; j < img.getWidth(); j++) {
@@ -69,7 +90,7 @@ public class ImageToText {
                             lastAnsiSeq = rgbSeq;
                         }
                     }
-                    if (useGrayMap) {
+                    if (useGrayRamp) {
                         sb.append(strChar(255 - rgb.toGrayscale().r));
                     } else {
                         sb.append("█");
@@ -80,18 +101,16 @@ public class ImageToText {
             }
             sb.append("\n");
         }
+        sb.append(TermColor.RESET);
         return sb.toString();
     }
 
-    /**
-     * Get ascii character for gray value
-     * @param grayScale value is an integer ranging from 0 (black) to 255 (white)
-     * @return character
-     */
-    private final static String GRAY_RAMP = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
-
     private char getCharacterForGrayScale(int grayScale) {
-        return GRAY_RAMP.charAt((int)(Math.ceil(((GRAY_RAMP.length() - 1) * grayScale) / 255)));
+        String grayRamp = grayRampType.ramp;
+        if (customGrayRamp != null && !customGrayRamp.trim().equals("")) {
+            grayRamp = customGrayRamp;
+        }
+        return grayRamp.charAt((int)(Math.ceil(((grayRamp.length() - 1) * grayScale) / 255)));
     }
 
     private char strChar(int g) {

@@ -31,6 +31,7 @@ public class Banner {
      */
     public String drawPalette(int cols, int rows) {
         StringBuilder sb = new StringBuilder();
+        sb.append(TermColor.RESET);
         for (int l = 0; l < rows ; l++) {
             for (int h = 0; h < cols; h++) {
                 Rgb rgb = new Hsl(
@@ -43,6 +44,7 @@ public class Banner {
             }
             sb.append("\n");
         }
+        sb.append(TermColor.RESET);
         return sb.toString();
     }
 
@@ -138,6 +140,8 @@ public class Banner {
         double pos = 0;
 
         StringBuilder builder = new StringBuilder();
+        builder.append(TermColor.RESET);
+
         for (String s : artLines) {
             builder.append(hslStart.interpolate(hslEnd, pos)
                     .toTerminalColor().toAnsiSequence(termColorModel, false, isGrayscale));
@@ -145,6 +149,7 @@ public class Banner {
             builder.append("\n");
             pos += inc;
         }
+        builder.append(TermColor.RESET);
         return builder.toString();
     }
 }

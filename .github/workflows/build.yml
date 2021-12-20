@@ -178,13 +178,13 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ steps.version.outputs.version }}
 
-      - name: Send message to skype
-        uses: Eloco/docker-action-send-skype@v2
-        if: always()
-        with:
-          skype_username: ${{ secrets.SKYPE_USERNAME }}
-          skype_password: ${{ secrets.SKYPE_PASSWORD }}
-          skype_ids: 19:0503749da2e44ed9910046678012bdf7@thread.skype
-          send_msg_path: build.msg
+#      - name: Send message to skype
+#        uses: Eloco/docker-action-send-skype@v2
+#        if: always()
+#        with:
+#          skype_username: ${{ secrets.SKYPE_USERNAME }}
+#          skype_password: ${{ secrets.SKYPE_PASSWORD }}
+#          skype_ids: 19:0503749da2e44ed9910046678012bdf7@thread.skype
+#          send_msg_path: build.msg
 
       

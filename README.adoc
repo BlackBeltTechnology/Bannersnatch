@@ -162,6 +162,11 @@ image::colorize.png[]
 
 === Image conversion to terminal
 
+Original image:image_ascii.png
+
+image::judo-man-icon-cropped.png[]
+
+
 ==== Render graymap ascii text without color
 
 [source, java]

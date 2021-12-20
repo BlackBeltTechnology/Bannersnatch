@@ -23,7 +23,7 @@ public class ImageToText {
     int targetWidth = 80;
 
     @Builder.Default
-    double aspectRatio = 1.0 / 2.5;
+    double aspectRatio =  3.0 / 4.0;
 
     @Builder.Default
     boolean isGraycale = false;

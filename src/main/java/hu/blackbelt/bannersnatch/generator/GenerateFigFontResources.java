@@ -29,7 +29,6 @@ public class GenerateFigFontResources {
 
         GenerateResourcesFileProcessor.iteraterFonts((f) -> {
             final FigletRenderer figletRenderer = new FigletRenderer(f.figFont);
-            //System.out.println(figletRenderer.renderText(fontName));
             String constName = f.fontName
                     .replace(" ", "_")
                     .replace("-", "_")

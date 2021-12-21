@@ -4,7 +4,9 @@ package hu.blackbelt.bannersnatch.color;
  * Represents a color in HSL color space.
  */
 public class Hsl {
-    public final double h, s, l;
+    public final double h;
+    public final double s;
+    public final double l;
 
     /**
      * Create a HSL color with the given parameters.
@@ -61,7 +63,7 @@ public class Hsl {
      * @return
      */
     public Hsl interpolate(Hsl target, double coefficient) {
-        if (coefficient > 1.0 | coefficient < 0.0) {
+        if (coefficient > 1.0 || coefficient < 0.0) {
             throw new IllegalArgumentException("Coefficient have to be between 0.0 and 1.0");
         }
         return new Hsl(

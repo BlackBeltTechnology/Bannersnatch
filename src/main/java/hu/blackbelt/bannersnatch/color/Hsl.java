@@ -13,7 +13,7 @@ public class Hsl {
      * @param lightness
      */
     public Hsl(double hue, double saturation, double lightness) {
-        if (hue > 1.0 | hue < 0 | saturation > 1.0 | saturation < 0 | lightness > 1.0 | lightness < 0) {
+        if (hue > 1.0 || hue < 0 || saturation > 1.0 || saturation < 0 || lightness > 1.0 || lightness < 0) {
             throw new IllegalArgumentException("hue, saturation and lightness value have to be between 0.0 and 1.0");
         }
         this.h = hue;

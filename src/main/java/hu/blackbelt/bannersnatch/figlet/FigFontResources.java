@@ -10,7 +10,7 @@ import java.util.Set;
  * resources.
  */
 public class FigFontResources {
-	public static final Set<String> FONTS = new HashSet();
+	public static final Set<String> FONTS = new HashSet<String>();
 	/**
 	 * The {@value #CHUNKY} FIGfont.
 	 * <p>

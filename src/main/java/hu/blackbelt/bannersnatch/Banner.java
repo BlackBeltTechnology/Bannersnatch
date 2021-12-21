@@ -57,8 +57,7 @@ public class Banner {
         try {
             FigFont figFont = FigFontResources.loadFigFontResource(fontName);
             final FigletRenderer figletRenderer = new FigletRenderer(figFont);
-            String art = figletRenderer.renderText(text);
-            return art;
+            return figletRenderer.renderText(text);
         } catch (IOException e) {
             return text;
         }
@@ -114,10 +113,10 @@ public class Banner {
     public String drawCrazy(String text) {
 
         List<String> fonts = new ArrayList<>(FigFontResources.FONTS);
-        String fontName = fonts.get(random.nextInt (fonts.size()- 1));
+        String fontNameReplacement = fonts.get(random.nextInt (fonts.size()- 1));
 
         Banner figletColorRenderer = Banner.bannerBuilder()
-                .fontName(fontName).termColorModel(termColorModel).isGrayscale(isGrayscale).build();
+                .fontName(fontNameReplacement).termColorModel(termColorModel).isGrayscale(isGrayscale).build();
 
         Hsl hslStart = new Hsl(Math.random(), Math.random(), Math.random());
         Hsl hslEnd = new Hsl(Math.random(), Math.random(), Math.random());

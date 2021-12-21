@@ -60,19 +60,19 @@ public class GenerateResourcesFileProcessor {
                         FigFont figFont = FigFontResources.loadFigFontResource(f.getName());
                         final FigletRenderer figletRenderer = new FigletRenderer(figFont);
                         String constName = fontName
-                                .replaceAll(" ", "_")
-                                .replaceAll("-", "_")
-                                .replaceAll("'", "_")
-                                .replaceAll("0", "ZERO")
-                                .replaceAll("1", "ONE")
-                                .replaceAll("2", "TWO")
-                                .replaceAll("3", "THREE")
-                                .replaceAll("4", "FOUR")
-                                .replaceAll("5", "FIVE")
-                                .replaceAll("6", "SIX")
-                                .replaceAll("7", "SERVEN")
-                                .replaceAll("8", "EIGHT")
-                                .replaceAll("9", "NINE")
+                                .replace(" ", "_")
+                                .replace("-", "_")
+                                .replace("'", "_")
+                                .replace("0", "ZERO")
+                                .replace("1", "ONE")
+                                .replace("2", "TWO")
+                                .replace("3", "THREE")
+                                .replace("4", "FOUR")
+                                .replace("5", "FIVE")
+                                .replace("6", "SIX")
+                                .replace("7", "SERVEN")
+                                .replace("8", "EIGHT")
+                                .replace("9", "NINE")
                                 .toUpperCase(Locale.ROOT);
 
                         transformFile.accept(new Font(f, constName, fontName, figFont));

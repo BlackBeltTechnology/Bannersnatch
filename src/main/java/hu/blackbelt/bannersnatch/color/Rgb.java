@@ -14,7 +14,7 @@ public class Rgb {
      * @param b
      */
     public Rgb(int r, int g, int b) {
-        if (r > 255 | r < 0 | g > 255 | g < 0 | b > 255 | b < 0) {
+        if (r > 255 || r < 0 || g > 255 || g < 0 || b > 255 || b < 0) {
             throw new IllegalArgumentException("r,b,b value have to be between 0 and 255.");
         }
         this.r = r;
@@ -46,25 +46,25 @@ public class Rgb {
      */
     public Hsl toHsl() {
         // Get RGB values in the range 0 - 1
-        double r = this.r / 255.0;
-        double g = this.g / 255.0;
-        double b = this.b / 255.0;
+        double rr = this.r / 255.0;
+        double gg = this.g / 255.0;
+        double bb = this.b / 255.0;
 
         // Minimum and Maximum RGB values are used in the HSL calculations
-        double min = Math.min(r, Math.min(g, b));
-        double max = Math.max(r, Math.max(g, b));
+        double min = Math.min(rr, Math.min(gg, bb));
+        double max = Math.max(rr, Math.max(gg, bb));
 
         // Calculate the Hue
         double h = 0;
 
         if (max == min) {
             h = 0;
-        } else if (max == r) {
-            h = ((60 * (g - b) / (max - min)) + 360) % 360;
-        } else if (max == g) {
-            h = (60 * (b - r) / (max - min)) + 120.0;
-        } else if (max == b) {
-            h = (60 * (r - g) / (max - min)) + 240;
+        } else if (max == rr) {
+            h = ((60 * (gg - bb) / (max - min)) + 360) % 360;
+        } else if (max == gg) {
+            h = (60 * (bb - rr) / (max - min)) + 120.0;
+        } else {
+            h = (60 * (rr - gg) / (max - min)) + 240;
         }
 
         // Calculate the Luminance

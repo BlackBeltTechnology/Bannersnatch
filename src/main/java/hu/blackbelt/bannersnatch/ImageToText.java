@@ -21,9 +21,13 @@ public class ImageToText {
         UNICODE_SHADE("\u2588\u2593\u2592\u2591 "),
         IBM_437_SHADE(new String(new char[] { 219, 178, 177, 176, 32}));
 
-        public String ramp;
+        final String ramp;
         GrayRampType(String ramp) {
             this.ramp = ramp;
+        }
+
+        public String getRamp() {
+            return ramp;
         }
     }
 
@@ -51,6 +55,9 @@ public class ImageToText {
     @Builder.Default
     TermColor.TermColorModel termColorModel = TermColor.TermColorModel.COLOR_256;
 
+    @Builder.Default
+    int transparentColor = -1;
+
 
     private BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
         BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
@@ -67,10 +74,11 @@ public class ImageToText {
      * @return
      */
     public String convertImage(InputStream image) {
-        BufferedImage img = null;
+        BufferedImage img;
         try {
             img = ImageIO.read(image);
         } catch (IOException e) {
+            return "Could not load image";
         }
 
         img = resizeImage(img, width, (int) ((double) img.getHeight() * ((double) width / (double) img.getHeight()) * aspectRatio));
@@ -78,39 +86,54 @@ public class ImageToText {
         StringBuilder sb = new StringBuilder();
         sb.append(TermColor.RESET);
         for (int i = 0; i < img.getHeight(); i++) {
-            String lastAnsiSeq = "";
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color pixcol = new Color(img.getRGB(j, i));
-                Rgb rgb = new Rgb(pixcol.getRGB());
-                if (pixcol.getAlpha() > 0) {
-                    if (isColorConverted) {
-                        String rgbSeq = rgb.toTerminalColor().toAnsiSequence(termColorModel, false, isGraycale);
-                        if (!lastAnsiSeq.equals(rgbSeq)) {
-                            sb.append(rgbSeq);
-                            lastAnsiSeq = rgbSeq;
-                        }
-                    }
-                    if (useGrayRamp) {
-                        sb.append(strChar(255 - rgb.toGrayscale().r));
-                    } else {
-                        sb.append("█");
-                    }
-                } else {
-                    sb.append(' ');
-                }
-            }
-            sb.append("\n");
+            convertLine(img, sb, i);
         }
         sb.append(TermColor.RESET);
         return sb.toString();
     }
+    private void convertLine(BufferedImage img, StringBuilder sb, int i) {
+        String lastRgbSeq = "";
+        for (int j = 0; j < img.getWidth(); j++) {
+            Color pixcol = new Color(img.getRGB(j, i));
+            Rgb rgb = new Rgb(pixcol.getRGB());
+            String rgbSeq = getEffectiveRgbSeq(pixcol, rgb);
+            if (!rgbSeq.equals("") && !rgbSeq.equals(lastRgbSeq)) {
+                sb.append(rgbSeq);
+                lastRgbSeq = rgbSeq;
+            }
+            drawPixel(pixcol, sb);
+        }
+        sb.append("\n");
+    }
+
+    private String getEffectiveRgbSeq(Color pixcol, Rgb rgb) {
+        if (isColorConverted && pixcol.getAlpha() > 0) {
+            return rgb.toTerminalColor().toAnsiSequence(termColorModel, false, isGraycale);
+        } else {
+            return "";
+        }
+    }
+
+    private void drawPixel(Color pixcol, StringBuilder sb) {
+        Rgb rgb = new Rgb(pixcol.getRGB());
+        if (pixcol.getAlpha() > 0 &&
+                rgb.toTerminalColor().getColorCode(termColorModel, isGraycale) != transparentColor) {
+            if (useGrayRamp) {
+                sb.append(strChar(255 - rgb.toGrayscale().r));
+            } else {
+                sb.append("█");
+            }
+        } else {
+            sb.append(' ');
+        }
+    }
 
     private char getCharacterForGrayScale(int grayScale) {
-        String grayRamp = grayRampType.ramp;
+        String grayRamp = grayRampType.getRamp();
         if (customGrayRamp != null && !customGrayRamp.trim().equals("")) {
             grayRamp = customGrayRamp;
         }
-        return grayRamp.charAt((int)(Math.ceil(((grayRamp.length() - 1) * grayScale) / 255)));
+        return grayRamp.charAt(((grayRamp.length() - 1) * grayScale) / 255);
     }
 
     private char strChar(int g) {

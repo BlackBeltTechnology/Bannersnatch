@@ -44,6 +44,13 @@ class ImageToTextTest {
                 .width(60).build()
                 .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
 
+        System.out.println(ImageToText.builder()
+                .useGrayRamp(false)
+                .isColorConverted(true)
+                .transparentColor(16)
+                .width(60).build()
+                .convertImage(new FileInputStream("src/test/resources/judo-man-icon-cropped.png")));
+
         assertTrue(true);
     }
 }

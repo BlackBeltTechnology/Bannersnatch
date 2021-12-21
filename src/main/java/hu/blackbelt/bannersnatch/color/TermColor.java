@@ -53,7 +53,7 @@ public class TermColor {
      *
      * @return color in 256 color terminal space
      */
-    private int getColorValue256(int r, int g, int b) {
+    private int getColorCode256Color(int r, int g, int b) {
         int qr, qg, qb, cr, cg, cb, d, idx;
         int grey_avg, grey_idx, grey;
 
@@ -67,7 +67,7 @@ public class TermColor {
 
         /* If we have hit the colour exactly, return early. */
         if (cr == r && cg == g && cb == b)
-            return ((16 + (36 * qr) + (6 * qg) + qb));
+            return 16 + (36 * qr) + (6 * qg) + qb;
 
         /* Work out the closest grey (average of RGB). */
         grey_avg = (r + g + b) / 3;
@@ -91,8 +91,8 @@ public class TermColor {
      *
      * @return
      */
-    public int getColorValue256() {
-        return getColorValue256(rgb.r, rgb.g, rgb.b);
+    public int getColorCode256Color() {
+        return getColorCode256Color(rgb.r, rgb.g, rgb.b);
     }
 
     /**
@@ -100,8 +100,8 @@ public class TermColor {
      *
      * @return
      */
-    public int getGrayscaleValue256() {
-        return getColorValue256(grayscale.r, grayscale.g, grayscale.b);
+    public int getColorCode256Grayscale() {
+        return getColorCode256Color(grayscale.r, grayscale.g, grayscale.b);
     }
 
     /**
@@ -109,8 +109,8 @@ public class TermColor {
      *
      * @return
      */
-    public int getColorValue16() {
-        return (COLOR_256_TO_16[getColorValue256() & 0xff]);
+    public int getColorCode16Color() {
+        return (COLOR_256_TO_16[getColorCode256Color() & 0xff]);
     }
 
     /**
@@ -118,9 +118,8 @@ public class TermColor {
      *
      * @return
      */
-    public int getGrayscaleValue16() {
-        return (COLOR_256_TO_16[getGrayscaleValue256() & 0xff]);
-
+    public int getColorCode16Grayscale() {
+        return (COLOR_256_TO_16[getColorCode256Grayscale() & 0xff]);
     }
 
     /**
@@ -129,15 +128,22 @@ public class TermColor {
      * @param gray Is grayscaled
      * @return
      */
-    public int getColor(TermColorModel termColorModel, boolean gray) {
-        if (TermColorModel.COLOR_256 == termColorModel && !gray) {
-            return getColorValue256();
-        } else if (TermColorModel.COLOR_256 == termColorModel && gray) {
-            return getGrayscaleValue256();
-        } else if (TermColorModel.COLOR_256 != termColorModel && gray) {
-            return getGrayscaleValue256();
+    public int getColorCode(TermColorModel termColorModel, boolean gray) {
+        if (TermColorModel.COLOR_RGB == termColorModel) {
+            throw new IllegalArgumentException("getColor is not supported in RGB Style");
+        }
+        if (TermColorModel.COLOR_256 == termColorModel) {
+            if (gray) {
+                return getColorCode256Grayscale();
+            } else {
+                return getColorCode256Color();
+            }
         } else {
-            return getColorValue16();
+            if (gray) {
+                return getColorCode16Grayscale();
+            } else {
+                return getColorCode16Color();
+            }
         }
     }
 
@@ -164,9 +170,7 @@ public class TermColor {
             col = grayscale;
         }
 
-        if (termColorModel == TermColorModel.COLOR_RGB ||
-                termColorModel == TermColorModel.COLOR_256 ||
-                termColorModel == TermColorModel.COLOR_16) {
+        if (termColorModel != TermColorModel.COLOR_16_LEGACY) {
             if (isBackground) {
                 sb.append("48;");
             } else {
@@ -174,11 +178,11 @@ public class TermColor {
             }
             if (termColorModel == TermColorModel.COLOR_RGB) {
                 sb.append("2;" + col.r + ";" + col.g + ";" + col.b);
-            } else if (termColorModel == TermColorModel.COLOR_256 || termColorModel == TermColorModel.COLOR_16) {
-                sb.append("5;" + getColor(termColorModel, isGrayScale));
+            } else {
+                sb.append("5;" + getColorCode(termColorModel, isGrayScale));
             }
         } else {
-            int color = getColor(termColorModel, isGrayScale);
+            int color = getColorCode(termColorModel, isGrayScale);
             int seq;
             if (color < 8) {
                 seq = color + 30;

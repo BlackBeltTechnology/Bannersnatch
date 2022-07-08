@@ -21,7 +21,7 @@
     </developers>
 
     <properties>
-        <revision>1.0.0-SNAPSHOT</revision>
+        <revision>1.0.0</revision>
         <maven>3.8.3</maven>
 
         <project-shortname>bannersnatch</project-shortname>
@@ -52,6 +52,7 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.language>java</sonar.language>
         <sonar.java.source>${maven.compiler.source}</sonar.java.source>
+
     </properties>
 
     <url>http://github.com/${project-repositoryId}</url>
@@ -68,6 +69,14 @@
         </developerConnection>
         <url>http://github.com/${project-repositoryId}</url>
     </scm>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <dependencies>
         <dependency>

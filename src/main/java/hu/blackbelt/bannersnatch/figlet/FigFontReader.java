@@ -1,4 +1,4 @@
-package hu.blackbelt.bannersnatch.jfiglet;
+package hu.blackbelt.bannersnatch.figlet;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class FigFontReader {
 
 			// Skip over the comment lines
 			for (int commentCounter = 0; commentCounter < fontBuilder.getCommentLines(); commentCounter++) {
-				bufferedReader.readLine();
+				String lineIgnored = bufferedReader.readLine();
 			}
 
 			// A FIGfont is required to have characters for ASCII 32 to 126 inclusive

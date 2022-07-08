@@ -1,6 +1,6 @@
-package hu.blackbelt;
+package hu.blackbelt.bannersnatch.generator;
 
-import hu.blackbelt.bannersnatch.jfiglet.FigletRenderer;
+import hu.blackbelt.bannersnatch.figlet.FigletRenderer;
 
 import java.io.IOException;
 
@@ -11,8 +11,8 @@ public class GenerateAdocResources {
 
         GenerateResourcesFileProcessor.iteraterFonts((f) -> {
                     final FigletRenderer figletRenderer = new FigletRenderer(f.figFont);
-            sb.append("#### " + f.fontName + " (" + f.constName + ")\n```\n");
-            sb.append(figletRenderer.renderText(f.fontName) + "\n```\n");
+            sb.append("==== " + f.fontName + " (" + f.constName + ")\n[source]\n----\n\n");
+            sb.append(figletRenderer.renderText(f.fontName) + "\n----\n");
         });
         System.out.println(sb.toString());
     }

@@ -42,7 +42,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
 
-        <slf4j-version>1.6.6</slf4j-version>
+        <slf4j-version>1.7.26</slf4j-version>
         <sonar-maven-plugin-version>3.7.0.1746</sonar-maven-plugin-version>
 
         <log4j.configuration>log4j.properties</log4j.configuration>

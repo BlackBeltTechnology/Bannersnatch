@@ -1,25 +1,39 @@
-name: java CI with maven
+name: Build project
 
 on:
   push:
     branches: [ develop ]
   pull_request:
-    branches: [ develop ]
-
-  workflow_dispatch:
+    branches: [ develop, master, increment/*, release/* ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build, test and deploy artifacts
+    runs-on: judong
     timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
           fetch-depth: 2
-        
+
       - name: Project context
         id: context
         uses: zero88/gh-project-context@v1.1
+
+      - name: Print git references
+        run: |-
+          echo "Ref: ${{ github.ref }}"
+          echo "Head ref: ${{ github.head_ref }}"
+          echo "Base ref: ${{ github.base_ref }}"
 
       - name: Import GPG key
         id: import_gpg
@@ -27,24 +41,6 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_SECRET_KEYS }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          
-      - name: Set up JDK 11
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'zulu'
-          gpg-private-key: ${{ secrets.GPG_SECRET_KEYS }}
-          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Calculate version number
-        id: version
-        run: |-
-          TAG_NAME=$(echo "${{ steps.context.outputs.branch }}" | cut -d ' ' -f2 | tr '#\/\.-' '_')
-          BASE_VERSION=$(./mvnw org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dtycho.mode=maven -DskipModules=true -Dexpression=project.version -q -DforceStdout | cut -d'-' -f 1)
-          VERSION_NUMBER=${BASE_VERSION}.$(date +%Y%m%d_%H%M%S)_${{ steps.context.outputs.shortCommitId }}_${TAG_NAME//[(\)]}
-          echo "Base version from POM: $BASE_VERSION"
-          echo "Building version: ${VERSION_NUMBER}"
-          echo "::set-output name=version::${VERSION_NUMBER}"
 
       - name: List GPG keys
         run: gpg --list-keys
@@ -52,9 +48,21 @@ jobs:
       - name: Grep config
         run: gpg --version
 
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'zulu'
+
+      - name: Get the current PR number
+        uses: jwalton/gh-find-current-pr@v1
+        id: current-pr
+        with:
+          state: open
+
       - name: Remove settings.xml
         run: rm $HOME/.m2/settings.xml || true
-          
+
       - name: Setup maven settings.xml
         uses: whelk-io/maven-settings-xml-action@v20
         with:
@@ -69,9 +77,13 @@ jobs:
                     "id": "judong-nexus-distribution",
                     "username": "${{ secrets.JUDONG_NEXUS_USERNAME }}",
                     "password": "${{ secrets.JUDONG_NEXUS_PASSWORD }}"
+                },
+                {
+                    "id": "ossrh",
+                    "username": "${{ secrets.SONATYPE_USERNAME }}",
+                    "password": "${{ secrets.SONATYPE_PASSWORD }}"
                 }
             ]
-
           mirrors: >
             [
                 {
@@ -81,110 +93,111 @@ jobs:
                  }
             ]
 
+      - name: Calculate version number
+        id: version
+        run: |-
+          POM_VERSION=$(./mvnw org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dtycho.mode=maven -DskipModules=true -Dexpression=project.version -q -DforceStdout)
+          if [[ "${POM_VERSION}" == *-SNAPSHOT ]]; then
+            BASE_VERSION=$(echo "${POM_VERSION}" | cut -d'-' -f 1)
+          else
+            BASE_VERSION=${POM_VERSION}
+          fi
+          if [[ "${{ github.base_ref }}" == "master" ]]; then
+            VERSION_NUMBER=${BASE_VERSION}
+          else
+            TAG_NAME=$(echo "${{ steps.context.outputs.branch }}" | cut -d ' ' -f2 | tr '#\/\.-' '_')
+            VERSION_NUMBER=${BASE_VERSION}.$(date +%Y%m%d_%H%M%S)_${{ steps.context.outputs.shortCommitId }}_${TAG_NAME//[(\)]}
+          fi
+          echo "Version from POM: ${POM_VERSION}"
+          echo "Base version from POM: ${BASE_VERSION}"
+          echo "Building version: ${VERSION_NUMBER}"
+          echo "::set-output name=version::${VERSION_NUMBER}"
 
-      - name: Print settings.xml
-        run: cat $HOME/.m2/settings.xml
-
-      - name: List GPG keys
-        run: gpg --list-keys
-
-#      - name: Cache Maven packages
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.m2
-#          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: ${{ runner.os }}-m2-
-
-#      - name: Set project version
-#        run: |-
-#          ./mvnw -B -Dstyle.color=always \
-#          -DnewVersion=${{ steps.version.outputs.version }} \
-#          -DgenerateBackupPoms=false \
-#          -Dtycho.mode=maven \
-#          versions:set
-#
-#      - name: Update target definition
-#        run: |-
-#          ./mvnw -B -Dstyle.color=always \
-#          -Dtycho.mode=maven  \
-#          -P update-target-versions \
-#          -f ./targetdefinition/pom.xml \
-#          validate
-#
-#      - name: Update category
-#        run: |-
-#         ./mvnw -B -Dstyle.color=always \
-#          -Dtycho.mode=maven \
-#          -P update-category-versions \
-#          -f ./site/pom.xml \
-#          validate
-#
-#      - name: Set tycho version
-#        run: |-
-#          ./mvnw -B -Dstyle.color=always \
-#          -Dtycho.mode=maven  \
-#          -P update-category-versions \
-#          tycho-versions:update-eclipse-metadata
-#
-      - name: Build with Maven
+      # Phase 1 - Build and deploy to judong nexus
+      - name: Build with Maven (build, test)
         run: |-
           ./mvnw -B -Dstyle.color=always \
           -Drevision=${{ steps.version.outputs.version }} \
-          -Psign-artifacts,release-judong \
+          -Psign-artifacts \
+          -Prelease-judong \
           deploy
 
-      - name: Sonar Metrics
-        if: steps.context.outputs.branch == 'develop'
-        continue-on-error: true
+      # Phase 1 - Build and deploy to maven central
+      - name: Deploy with Maven (central)
+        if: ${{ always() && contains(github.head_ref, 'release') && job.status == 'success' }}
         run: |-
           ./mvnw -B -Dstyle.color=always \
-          -Dsonar.projectKey=judo-tatami-core \
-          -Dsonar.host.url=https://sonar.judo.technology \
-          -Dsonar.login=${{ secrets.JUDO_SONAR_TOKEN }} \
-          sonar:sonar
+          -Drevision=${{ steps.version.outputs.version }} \
+          -DdeployOnly \
+          -P"release-central,sign-artifacts,-verify-feature" \
+          -Dmaven.test.skip=true \
+          deploy
 
-#      - name: Release P2
-#        run: |-
-#          ./mvnw -B -Dstyle.color=always \
-#          -Dtycho.mode=maven \
-#          -Prelease-dummy,release-p2-judong \
-#          -DdeployOnly \
-#          -DskipTests=true \
-#          -DskipModules=true \
-#          deploy
-
-      - name: Create success message
-        if: ${{ !failure() && !cancelled() }}
-        run: |-
-          echo ":check_mark_button: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" > build.msg
-          echo "Version: ${{ steps.version.outputs.version }}" >> build.msg
-          echo "Commit: ${{ steps.context.outputs.commitMsg }}" >> build.msg
-
-      - name: Create faliure message
-        if: ${{ failure() }}
-        run: |-
-          echo ":cross_mark: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" > build.msg
-          echo "Commit: ${{ steps.context.outputs.commitMsg }}" >> build.msg
-
-      - name: Create canceled message
-        if: ${{ cancelled() }}
-        run: |-
-          echo ":warning: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" > build.msg
-          echo "Commit: ${{ steps.context.outputs.commitMsg }}" >> build.msg
-
-      - name: Tag commit
-        uses: tvdias/github-tagger@v0.0.1
+      - name: Create version tag
+        uses: actions/github-script@v5
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ steps.version.outputs.version }}
+          github-token: ${{ secrets.OSS_PAT }}
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ steps.version.outputs.version }}',
+              sha: context.sha
+            })
 
-#      - name: Send message to skype
-#        uses: Eloco/docker-action-send-skype@v2
-#        if: always()
-#        with:
-#          skype_username: ${{ secrets.SKYPE_USERNAME }}
-#          skype_password: ${{ secrets.SKYPE_PASSWORD }}
-#          skype_ids: 19:0503749da2e44ed9910046678012bdf7@thread.skype
-#          send_msg_path: build.msg
+      - name: Tag to trigger PR merge on increment / release branch
+        if: |-
+          ${{ always() && 
+          (contains(github.head_ref, 'increment') || contains(github.head_ref, 'release')) && 
+          job.status == 'success' }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.OSS_PAT }}
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/merge-pr/${{ steps.current-pr.outputs.pr }}',
+              sha: context.sha
+            })
 
-      
+      - name: Tag to trigger release on master / develop branch
+        if: |-
+          ${{ always() && 
+          (contains(github.head_ref, 'develop') || contains(github.ref, 'develop') || 
+            contains(github.head_ref, 'master') || contains(github.ref, 'master')) && 
+          job.status == 'success' }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.OSS_PAT }}
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/create-release/${{ steps.version.outputs.version }}',
+              sha: context.sha
+            })
+
+      - name: Create message
+        id: message
+        if: ${{ always() }}
+        run: |-
+          if [ "${{ job.status }}" == "success" ]; then
+            message=":white_check_mark: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            message="${message} Version: ${{ steps.version.outputs.version }}"
+          fi
+          if [ "${{ job.status }}" == "failure" ]; then
+            message=":x: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"    
+          fi
+          if [ "${{ job.status }}" == "canceled" ]; then
+            message=":x: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"    
+          fi
+          echo "::set-output name=message::${message}"
+          
+      - name: Send message to discord
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.JUDONG_DISCORD_WEBHOOK }}
+          title: "Gitub action"
+          description: "${{ steps.message.outputs.message }}"

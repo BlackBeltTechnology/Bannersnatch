@@ -8,62 +8,45 @@ on:
 
 jobs:
   build:
-    name: Build, test and deploy artifacts
+    name: ⏳ Build, test and deploy artifacts
     runs-on: judong
     timeout-minutes: 30
     outputs:
       version: ${{ steps.version.outputs.version }}
 
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-
-      - name: Checkout repository
+      - name: ⬇️ Checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 2
 
-      - name: Project context
+      - name: 🛠️ Project context
         id: context
         uses: zero88/gh-project-context@v1.1
 
-      - name: Print git references
-        run: |-
-          echo "Ref: ${{ github.ref }}"
-          echo "Head ref: ${{ github.head_ref }}"
-          echo "Base ref: ${{ github.base_ref }}"
-
-      - name: Import GPG key
+      - name: 💉 Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v4
         with:
           gpg_private_key: ${{ secrets.GPG_SECRET_KEYS }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: List GPG keys
-        run: gpg --list-keys
-
-      - name: Grep config
-        run: gpg --version
-
-      - name: Set up JDK 11
+      - name: 🛠️ Set up JDK 11
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'zulu'
 
-      - name: Get the current PR number
+      - name: 🔢 Get the current PR number
         uses: jwalton/gh-find-current-pr@v1
         id: current-pr
         with:
           state: open
 
-      - name: Remove settings.xml
+      - name: 🧹 Remove settings.xml
         run: rm $HOME/.m2/settings.xml || true
 
-      - name: Setup maven settings.xml
+      - name: 🛠️ Setup maven settings.xml
         uses: whelk-io/maven-settings-xml-action@v20
         with:
           servers: >
@@ -93,7 +76,7 @@ jobs:
                  }
             ]
 
-      - name: Calculate version number
+      - name: 🔢 Calculate version number
         id: version
         run: |-
           POM_VERSION=$(./mvnw org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dtycho.mode=maven -DskipModules=true -Dexpression=project.version -q -DforceStdout)
@@ -113,8 +96,12 @@ jobs:
           echo "Building version: ${VERSION_NUMBER}"
           echo "::set-output name=version::${VERSION_NUMBER}"
 
+##########################
+# MAVEN BUILD START
+##########################
+
       # Phase 1 - Build and deploy to judong nexus
-      - name: Build with Maven (build, test)
+      - name: 🔥 Build with Maven (build, test)
         run: |-
           ./mvnw -B -Dstyle.color=always \
           -Drevision=${{ steps.version.outputs.version }} \
@@ -122,9 +109,9 @@ jobs:
           -Prelease-judong \
           deploy
 
-      # Phase 1 - Build and deploy to maven central
-      - name: Deploy with Maven (central)
-        if: ${{ always() && contains(github.head_ref, 'release') && job.status == 'success' }}
+      # Phase 2 - Build and deploy to maven central
+      - name: 🎁 Deploy with Maven (central)
+        if: ${{ always() && startsWith(github.head_ref, 'release') && job.status == 'success' }}
         run: |-
           ./mvnw -B -Dstyle.color=always \
           -Drevision=${{ steps.version.outputs.version }} \
@@ -133,7 +120,12 @@ jobs:
           -Dmaven.test.skip=true \
           deploy
 
-      - name: Create version tag
+##########################
+# MAVEN BUILD END
+##########################
+
+
+      - name: 📌 Create version tag
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.OSS_PAT }}
@@ -145,10 +137,10 @@ jobs:
               sha: context.sha
             })
 
-      - name: Tag to trigger PR merge on increment / release branch
+      - name: 📌 Tag to trigger PR merge on increment / release branch
         if: |-
           ${{ always() && 
-          (contains(github.head_ref, 'increment') || contains(github.head_ref, 'release')) && 
+          (startsWith(github.head_ref, 'increment') || startsWith(github.head_ref, 'release')) && 
           job.status == 'success' }}
         uses: actions/github-script@v5
         with:
@@ -161,24 +153,30 @@ jobs:
               sha: context.sha
             })
 
-      - name: Tag to trigger release on master / develop branch
+      - name: 🏗️ Build Changelog
+        id: create_changelog
+        uses: mikepenz/release-changelog-builder-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          toTag: v${{ steps.version.outputs.version }}
+
+      - name: 📖 Create release
         if: |-
           ${{ always() && 
-          (contains(github.head_ref, 'develop') || contains(github.ref, 'develop') || 
-            contains(github.head_ref, 'master') || contains(github.ref, 'master')) && 
+          (startsWith(github.head_ref, 'develop') || github.ref == 'refs/heads/develop') && 
           job.status == 'success' }}
-        uses: actions/github-script@v5
+        uses: ncipollo/release-action@v1
         with:
-          github-token: ${{ secrets.OSS_PAT }}
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/create-release/${{ steps.version.outputs.version }}',
-              sha: context.sha
-            })
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: v${{ steps.version.outputs.version }}
+          tag: v${{ steps.version.outputs.version }}
+          generateReleaseNotes: false
+          body: ${{steps.create_changelog.outputs.changelog}}
+          draft: false
+          prerelease: true
 
-      - name: Create message
+      - name: 🎤 Create message
         id: message
         if: ${{ always() }}
         run: |-
@@ -193,8 +191,8 @@ jobs:
             message=":x: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"    
           fi
           echo "::set-output name=message::${message}"
-          
-      - name: Send message to discord
+
+      - name: 📢 Send message to discord
         uses: sarisia/actions-status-discord@v1
         if: always()
         with:

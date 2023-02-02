@@ -21,7 +21,7 @@
     </developers>
 
     <properties>
-        <revision>1.0.1-SNAPSHOT</revision>
+        <revision>1.0.1</revision>
         <maven>3.8.3</maven>
 
         <project-shortname>bannersnatch</project-shortname>

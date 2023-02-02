@@ -44,6 +44,20 @@ So very big respect for the original contributors:
 
 == Usage
 
+==== From maven ====
+
+It is released to central repository. 
+Add the following dependency to your `pom.xml` file:
+
+[source, xml]
+----
+<dependency>
+  <groupId>hu.blackbelt</groupId>
+  <artifactId>bannersnatch</artifactId>
+  <version>1.0.0</version>
+</dependency>
+----
+
 ==== Rendering banner
 
 ==== Draw ascii without any ansi sequence
